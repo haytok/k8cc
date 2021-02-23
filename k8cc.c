@@ -21,10 +21,16 @@ struct Token {
 };
 
 Token *token;
+char *user_input;
 
-void error(char *fmt, ...) {
+void error(char *string, char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
+
+    int counts = string - user_input;
+    fprintf(stderr, "%s\n", user_input);
+    fprintf(stderr, "%*s", counts, " ");
+    fprintf(stderr, "^ ");
     vfprintf(stderr, fmt, ap);
     fprintf(stderr, "\n");
     exit(1);
@@ -59,7 +65,7 @@ Token *tokenize(char *string) {
             current_token->value = value;
             continue;
         }
-        error("トークナイズできません。");
+        error(token->string, "トークナイズできません。");
     }
     current_token = new_token(TK_EOF, string, current_token);
     return head.next;
@@ -67,7 +73,7 @@ Token *tokenize(char *string) {
 
 int expect_number() {
     if (token->kind != TK_NUM) {
-        error("数ではありません。");
+        error(token->string, "数ではありません。");
     }
     int value = token->value;
     token = token->next;
@@ -87,7 +93,7 @@ bool consume(char op) {
 
 void expect(char op) {
     if (token->kind != TK_RESERVED || token->string[0] != op) {
-        error("'%c'ではありません。\n", op);
+        error(token->string, "'%c'ではありません。\n", op);
     }
     token = token->next;
 }
@@ -103,6 +109,7 @@ int main(int argc, char *argv[]) {
     printf("main:\n");
 
     token = tokenize(argv[1]);
+    user_input = argv[1];
 
     printf("  mov rax, %d\n", expect_number());
 
