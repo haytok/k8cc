@@ -20,6 +20,23 @@ struct Token {
     Token *next;
 };
 
+typedef enum {
+    NODE_ADD,
+    NODE_SUB,
+    NODE_MUL,
+    NODE_DIV,
+    NODE_NUM,
+} NodeKind;
+
+typedef struct Node Node;
+
+struct Node {
+    NodeKind kind;
+    Node *lhs; // left-hand side
+    Node *rhs; // right-hand side
+    int value;
+};
+
 Token *token;
 char *user_input;
 
@@ -30,7 +47,7 @@ void error(char *string, char *fmt, ...) {
     int counts = string - user_input;
     fprintf(stderr, "%s\n", user_input);
     fprintf(stderr, "%*s", counts, " ");
-    fprintf(stderr, "^ ");
+    fprintf(stderr, "^ q");
     vfprintf(stderr, fmt, ap);
     fprintf(stderr, "\n");
     exit(1);
@@ -96,6 +113,59 @@ void expect(char op) {
         error(token->string, "'%c'ではありません。\n", op);
     }
     token = token->next;
+}
+
+// 構文解析
+Node *new_node(NodeKind kind, Node *lhs, Node *rhs) {
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = kind;
+    node->lhs = lhs;
+    node->rhs = rhs;
+    return node;
+}
+
+Node *new_node_num(int value) {
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = NODE_NUM;
+    node->value = value;
+    return node;
+}
+
+Node *expr() {
+    Node *node = mul();
+
+    for (;;) {
+        if (consume('+')) {
+            node = new_node(NODE_ADD, node, mul());
+        } else if (consume('-')) {
+            node = new_node(NODE_SUB, node, mul());
+        } else {
+            return node; // 最終的に生成される node
+        }
+    }
+}
+
+Node *mul() {
+    Node *node = primary();
+
+    for (;;) {
+        if (consume('*')) {
+            node = new_node(NODE_MUL, node, primary());
+        } else if (consume('/')) {
+            node = new_node(NODE_DIV, node, primary());
+        } else {
+            return node; // 最終的に生成される node
+        }
+    }
+}
+
+Node *primary() {
+    if (consume('(')) {
+        Node *node = expr();
+        expect(')');
+        return node; // この時点で token は ) の次の token を指している
+    }
+    return new_node_num(expect_number()); // この時点で token は数字の次の token を指している
 }
 
 int main(int argc, char *argv[]) {
