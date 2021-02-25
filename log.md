@@ -4,3 +4,5 @@
 - [*argv[] **argvとはなんぞや？](https://qiita.com/violeteverganden/items/937f4d310e4f99d28cc6)
 - [atoi 関数について](http://hitorilife.com/atoi.php)
 - [strtol 関数] (http://www.c-tipsref.com/reference/stdlib/strtol.html)
+- [strchr](http://www.c-tipsref.com/reference/string/strchr.html)
+  - strchr 関数は s が指す文字列の中で c が最初に現れる位置を探します．(終端ナル文字は文字列の一部とみなされます．) 探索中は c は char 型として解釈されます．
