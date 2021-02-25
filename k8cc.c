@@ -79,7 +79,7 @@ Token *tokenize(char *string) {
             *string++;
             continue;
         }
-        if (*string == '+' || *string == '-') {
+        if (strchr("+-*/()", *string)) {
             current_token = new_token(TK_RESERVED, string++, current_token);
             continue;
         }
@@ -185,18 +185,18 @@ void gen(Node *node) {
     gen(node->lhs);
     gen(node->rhs);
 
-    printf("  push rdi\n");
-    printf("  push rax\n");
+    printf("  pop rdi\n");
+    printf("  pop rax\n");
 
     switch (node->kind) {
         case NODE_ADD:
-            printf("  add rax rdi\n");
+            printf("  add rax, rdi\n");
             break;
         case NODE_SUB:
-            printf("  sub rax rdi\n");
+            printf("  sub rax, rdi\n");
             break;
         case NODE_MUL:
-            printf("  imul rax rdi\n");
+            printf("  imul rax, rdi\n");
             break;
         case NODE_DIV:
             printf("  cqo\n");
@@ -217,20 +217,13 @@ int main(int argc, char *argv[]) {
     printf(".global main\n");
     printf("main:\n");
 
-    token = tokenize(argv[1]);
-    user_input = argv[1];
+    user_input = argv[1]; // コンパイルエラーを表示するための変数
+    token = tokenize(user_input);
+    Node *node = expr();
 
-    printf("  mov rax, %d\n", expect_number());
+    gen(node);
 
-    while(!at_eof()) {
-        if (consume('+')) {
-            printf("  add rax, %d\n", expect_number());
-            continue;
-        }
-        expect('-');
-        printf("  sub rax, %d\n", expect_number());
-    }
-
+    printf("  pop rax\n");
     printf("  ret\n");
     return 0;
 }
