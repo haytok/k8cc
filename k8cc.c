@@ -37,6 +37,13 @@ struct Node {
     int value;
 };
 
+// 関数の循環参照のためのプロトタイプ宣言
+Node *new_node(NodeKind kind, Node *lhs, Node *rhs);
+Node *new_node_num(int value);
+Node *expr();
+Node *mul();
+Node *primary();
+
 Token *token;
 char *user_input;
 
@@ -166,6 +173,38 @@ Node *primary() {
         return node; // この時点で token は ) の次の token を指している
     }
     return new_node_num(expect_number()); // この時点で token は数字の次の token を指している
+}
+
+// Node を元にアセンブリを生成する
+void gen(Node *node) {
+    if (node->kind == NODE_NUM) {
+        printf("  push %d\n", node->value);
+        return;
+    }
+
+    gen(node->lhs);
+    gen(node->rhs);
+
+    printf("  push rdi\n");
+    printf("  push rax\n");
+
+    switch (node->kind) {
+        case NODE_ADD:
+            printf("  add rax rdi\n");
+            break;
+        case NODE_SUB:
+            printf("  sub rax rdi\n");
+            break;
+        case NODE_MUL:
+            printf("  imul rax rdi\n");
+            break;
+        case NODE_DIV:
+            printf("  cqo\n");
+            printf("  idiv rdi\n");
+            break;
+    }
+
+    printf("  push rax\n");
 }
 
 int main(int argc, char *argv[]) {
