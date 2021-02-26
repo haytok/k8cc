@@ -42,6 +42,7 @@ Node *new_node(NodeKind kind, Node *lhs, Node *rhs);
 Node *new_node_num(int value);
 Node *expr();
 Node *mul();
+Node *unary();
 Node *primary();
 
 Token *token;
@@ -54,7 +55,7 @@ void error(char *string, char *fmt, ...) {
     int counts = string - user_input;
     fprintf(stderr, "%s\n", user_input);
     fprintf(stderr, "%*s", counts, " ");
-    fprintf(stderr, "^ q");
+    fprintf(stderr, "^ ");
     vfprintf(stderr, fmt, ap);
     fprintf(stderr, "\n");
     exit(1);
@@ -153,17 +154,28 @@ Node *expr() {
 }
 
 Node *mul() {
-    Node *node = primary();
+    Node *node = unary();
 
     for (;;) {
         if (consume('*')) {
-            node = new_node(NODE_MUL, node, primary());
+            node = new_node(NODE_MUL, node, unary());
         } else if (consume('/')) {
-            node = new_node(NODE_DIV, node, primary());
+            node = new_node(NODE_DIV, node, unary());
         } else {
             return node; // 最終的に生成される node
         }
     }
+}
+
+// unary = ("+" | "-")? unary | primary
+Node *unary() {
+    if (consume('+')) {
+        return unary();
+    }
+    if (consume('-')) {
+        return new_node(NODE_SUB, new_node_num(0), unary());
+    }
+    return primary();
 }
 
 Node *primary() {
