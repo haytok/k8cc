@@ -32,6 +32,12 @@ Node *new_node_num(int value) {
     return node;
 }
 
+Node *new_unary(NodeKind kind, Node *lhs) {
+    Node *node = new_node(kind);
+    node->lhs = lhs;
+    return node;
+}
+
 // program = stmt*
 Node *program() {
     // 連結リストで作成していく Node の初期化
@@ -47,8 +53,14 @@ Node *program() {
     return head.next;
 }
 
-// stmt = expr ";"
+// stmt = expr ";" | "return" expr ";"
 Node *stmt() {
+    if (consume("return")) {
+        Node *node = new_unary(NODE_RETURN, expr());
+        expect(";");
+        return node;
+    }
+
     Node *node = expr();
     expect(";");
     return node;

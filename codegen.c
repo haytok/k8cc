@@ -2,9 +2,15 @@
 
 // Node を元にアセンブリを生成する
 void gen(Node *node) {
-    if (node->kind == NODE_NUM) {
-        printf("  push %d\n", node->value);
-        return;
+    switch (node->kind) {
+        case NODE_NUM:
+            printf("  push %d\n", node->value);
+            return;
+        case NODE_RETURN:
+            gen(node->lhs);
+            printf("  pop rax\n");
+            printf("  ret\n");
+            return;
     }
 
     gen(node->lhs);
@@ -47,6 +53,12 @@ void gen(Node *node) {
             printf("  cmp rax, rdi\n");
             printf("  setle al\n");
             printf("  movzb rax, al\n");
+            break;
+        case NODE_ASSIGN:
+            break;
+        case NODE_LVAR:
+            break;
+        default:
             break;
     }
 

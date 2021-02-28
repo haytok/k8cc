@@ -34,6 +34,7 @@ typedef enum {
     NODE_NUM, // Integer
     NODE_ASSIGN, // =
     NODE_LVAR, // Local variable
+    NODE_RETURN, // return
 } NodeKind;
 
 typedef struct Node Node;
