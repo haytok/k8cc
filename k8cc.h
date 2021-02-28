@@ -9,6 +9,7 @@ typedef enum {
   TK_RESERVED,
   TK_NUM,
   TK_EOF,
+  TK_IDENT, // 変数
 } TokenKind;
 
 typedef struct Token Token;
@@ -31,6 +32,8 @@ typedef enum {
     NODE_LT, // <
     NODE_LE, // <=
     NODE_NUM, // Integer
+    NODE_ASSIGN, // =
+    NODE_LVAR, // Local variable
 } NodeKind;
 
 typedef struct Node Node;
@@ -40,6 +43,8 @@ struct Node {
     Node *lhs; // left-hand side
     Node *rhs; // right-hand side
     int value;
+    int offset;
+    Node *next;
 };
 
 // Node に関する宣言
@@ -48,9 +53,10 @@ Node *new_node_binary(NodeKind kind, Node *lhs, Node *rhs);
 Node *new_node_num(int value);
 
 // 文法に関する宣言
-Node *expr();
+Node *program();
 
 // token を操作する関数
+bool at_eof();
 bool consume(char *op);
 void expect(char *op);
 int expect_number();

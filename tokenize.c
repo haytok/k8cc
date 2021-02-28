@@ -89,8 +89,12 @@ Token *tokenize() {
             string += 2;
             continue;
         }
-        if (strchr("+-*/()<>", *string)) {
+        if (strchr("+-*/()<>;", *string)) {
             current_token = new_token(TK_RESERVED, string++, current_token, 1);
+            continue;
+        }
+        if ('a' <= *string && *string <= 'z') {
+            current_token = new_token(TK_IDENT, string++, current_token, 1);
             continue;
         }
         if (isdigit(*string)) {

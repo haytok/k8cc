@@ -1,7 +1,10 @@
 #include "k8cc.h"
 
 // 関数の循環参照のためのプロトタイプ宣言
+Node *program();
+Node *stmt();
 Node *expr();
+Node *assign();
 Node *equality();
 Node *relational();
 Node *add();
@@ -29,8 +32,39 @@ Node *new_node_num(int value) {
     return node;
 }
 
-// expr = equality
-Node *expr() { return equality(); }
+// program = stmt*
+Node *program() {
+    // 連結リストで作成していく Node の初期化
+    Node head;
+    head.next = NULL;
+    Node *current_node = &head;
+
+    while (!at_eof()) {
+        current_node->next = stmt();
+        current_node = current_node->next;
+    }
+
+    return head.next;
+}
+
+// stmt = expr ";"
+Node *stmt() {
+    Node *node = expr();
+    expect(";");
+    return node;
+}
+
+// expr = assign
+Node *expr() { return assign(); }
+
+// assign = equality ("=" assign)?
+Node *assign() {
+    Node *node = equality();
+    if (consume("=")) {
+        node = new_node_binary(NODE_ASSIGN, node, assign());
+    }
+    return node;
+}
 
 // equality = relational ("==" relational | "!=" relational)*
 Node *equality() {
