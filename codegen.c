@@ -6,6 +6,12 @@ void gen(Node *node) {
         case NODE_NUM:
             printf("  push %d\n", node->value);
             return;
+        case NODE_EXPR_STMT:
+            gen(node->lhs);
+            // 見本はこっちの実装になってる。
+            printf("  add rsp, 8\n");
+            // printf("  pop rax\n");
+            return;
         case NODE_RETURN:
             gen(node->lhs);
             printf("  pop rax\n");
@@ -72,7 +78,7 @@ void codegen(Node *node) {
 
     for (Node *n = node; n; n=n->next) {
         gen(n);
-        printf("  pop rax\n");
+        // printf("  pop rax\n");
     }
 
     printf("  ret\n");
