@@ -52,11 +52,15 @@ assert 1 "return 1>=0;"
 assert 1 "return 1>=1;"
 assert 0 "return 1>=2;"
 
-assert 1 "1;"
-assert 3 "1; 2; 3;"
-assert 1 "return 1; 2; 3;"
-assert 2 "1; return 2; 3;"
+# 必ず return 文をつける必要がある
+assert 1 "return 1;"
+# assert 1 "1;" # ダメなテストケース
 assert 3 "1; 2; return 3;"
-
+assert 1 "return 1; 2; 3;"
+assert 3 "return 3;"
+assert 3 "1 + 2 + 3; 2; return 3;"
+# アセンブラの一番初めの ret が評価されてる
+assert 2 "1; return 2; 3;"
+assert 2 "1; return 2; return 3;"
 
 echo OK
