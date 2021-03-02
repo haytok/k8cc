@@ -38,6 +38,12 @@ Node *new_unary(NodeKind kind, Node *lhs) {
     return node;
 }
 
+Node *new_lvar(char name) {
+    Node *node = new_node(NODE_LVAR);
+    node->name = name;
+    return node;
+}
+
 // program = stmt*
 Node *program() {
     // 連結リストで作成していく Node の初期化
@@ -154,12 +160,18 @@ Node *unary() {
     return primary();
 }
 
-// num | "(" expr ")"
+// num | ident | "(" expr ")"
 Node *primary() {
     if (consume("(")) {
         Node *node = expr();
         expect(")");
         return node; // この時点で token は ) の次の token を指している
     }
-    return new_node_num(expect_number()); // この時点で token は数字の次の token を指している
+
+    Token *tkn = consume_ident();
+    if (tkn) {
+        return new_lvar(*tkn->string);
+    }
+
+    return new_node_num(expect_number());  // この時点で token は数字の次の token を指している
 }

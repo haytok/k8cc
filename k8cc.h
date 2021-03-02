@@ -32,10 +32,10 @@ typedef enum {
     NODE_LT, // <
     NODE_LE, // <=
     NODE_NUM, // Integer
-    NODE_ASSIGN, // =
-    NODE_LVAR, // Local variable
     NODE_RETURN, // return
     NODE_EXPR_STMT, // expression statement
+    NODE_LVAR, // Local variable
+    NODE_ASSIGN, // =
 } NodeKind;
 
 typedef struct Node Node;
@@ -45,8 +45,9 @@ struct Node {
     Node *lhs; // left-hand side
     Node *rhs; // right-hand side
     int value;
-    int offset;
     Node *next;
+    int offset;
+    char name;
 };
 
 // Node に関する宣言
@@ -58,8 +59,10 @@ Node *new_node_num(int value);
 Node *program();
 
 // token を操作する関数
+void error(char *string, char *fmt, ...); // 引数も同時に書かないとコンパイラが認識できない。
 bool at_eof();
 bool consume(char *op);
+Token *consume_ident();
 void expect(char *op);
 int expect_number();
 Token *tokenize();

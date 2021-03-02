@@ -44,6 +44,16 @@ bool consume(char *op) {
     return true;
 }
 
+// 一文字の変数のトークンに関する処理
+Token *consume_ident() {
+    if (token->kind != TK_IDENT) {
+        return NULL;
+    }
+    Token *tok = token;
+    token = token->next;
+    return tok;
+}
+
 void expect(char *op) {
     if (
         token->kind != TK_RESERVED ||
@@ -97,7 +107,7 @@ Token *tokenize() {
             string += 2;
             continue;
         }
-        if (strchr("+-*/()<>;", *string)) {
+        if (strchr("+-*/()<>;=", *string)) {
             current_token = new_token(TK_RESERVED, string++, current_token, 1);
             continue;
         }
