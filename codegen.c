@@ -2,13 +2,13 @@
 
 // 左辺値のアセンブリを出力
 void gen_lval(Node *node) {
-    if (node->kind != NODE_LVAR) {
+    if (node->kind != NODE_VAR) {
         error("Invalid lvalue.", "error");
     }
-    int offset = (node->name - 'a' + 1) * 8;
+    // node->var->name と node->var->offset に変数に関する必要なパラメータが入っている。
     printf("  mov rax, rbp\n");
     // printf("  lea rax [rbp-%d]\n", offset); // このアセンブリでも可
-    printf("  sub rax, %d\n", offset);
+    printf("  sub rax, %d\n", node->var->offset);
     printf("  push rax\n"); // 最終的にスタックのトップには変数のアドレスが積まれている。
     return;
 }
@@ -35,7 +35,7 @@ void gen(Node *node) {
             printf("  push rdi\n");
             return;
         // a + z の処理の時に呼ばれる。
-        case NODE_LVAR:
+        case NODE_VAR:
             gen_lval(node);
 
             printf("  pop rax\n");
@@ -99,7 +99,7 @@ void gen(Node *node) {
     printf("  push rax\n");
 }
 
-void codegen(Node *node) {
+void codegen(Program *prog) {
     printf(".intel_syntax noprefix\n");
     printf(".global main\n");
     printf("main:\n");
@@ -107,10 +107,10 @@ void codegen(Node *node) {
     // プロローグ
     printf("  push rbp\n");
     printf("  mov rbp, rsp\n");
-    printf("  sub rsp, 208\n");
+    printf("  sub rsp, %d\n", prog->stack_size);
 
 
-    for (Node *n = node; n; n=n->next) {
+    for (Node *n = prog->node; n; n=n->next) {
         gen(n);
         // printf("  pop rax\n");
     }

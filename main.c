@@ -11,8 +11,16 @@ int main(int argc, char *argv[]) {
 
     user_input = argv[1];
     token = tokenize();
-    Node *node = program();
-    codegen(node);
+    Program *prog = program();
+
+    int offset = 0;
+    for (Var *v = prog->var; v; v = v->next) {
+        offset += 8;
+        v->offset = offset;
+    }
+    prog->stack_size = offset;
+
+    codegen(prog);
 
     return 0;
 }

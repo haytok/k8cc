@@ -116,8 +116,13 @@ Token *tokenize() {
             string += 6;
             continue;
         }
-        if ('a' <= *string && *string <= 'z') {
-            current_token = new_token(TK_IDENT, string++, current_token, 1);
+        if (is_alpha(*string)) {
+            char *start = string;
+            string++;
+            while(is_alnum(*string)) {
+                string++;
+            }
+            current_token = new_token(TK_IDENT, start, current_token, string - start);
             continue;
         }
         if (isdigit(*string)) {
@@ -132,4 +137,11 @@ Token *tokenize() {
     }
     current_token = new_token(TK_EOF, string, current_token, 0);
     return head.next;
+}
+
+char *strndup(char *string, int len) {
+    char *buf = malloc(len + 1);
+    strncpy(buf, string, len);
+    buf[len] = '\0';
+    return buf;
 }

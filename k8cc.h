@@ -5,14 +5,17 @@
 #include <stdarg.h>
 #include <string.h>
 
+typedef struct Token Token;
+typedef struct Node Node;
+typedef struct Var Var;
+typedef struct Program Program;
+
 typedef enum {
   TK_RESERVED,
   TK_NUM,
   TK_EOF,
   TK_IDENT, // 変数
 } TokenKind;
-
-typedef struct Token Token;
 
 struct Token {
     TokenKind kind;
@@ -34,11 +37,9 @@ typedef enum {
     NODE_NUM, // Integer
     NODE_RETURN, // return
     NODE_EXPR_STMT, // expression statement
-    NODE_LVAR, // Local variable
+    NODE_VAR, // Local variable
     NODE_ASSIGN, // =
 } NodeKind;
-
-typedef struct Node Node;
 
 struct Node {
     NodeKind kind;
@@ -47,7 +48,19 @@ struct Node {
     int value;
     Node *next;
     int offset;
-    char name;
+    Var *var;
+};
+
+struct Var {
+    Var *next;
+    char *name;
+    int offset;
+};
+
+struct Program {
+    Node *node;
+    Var *var;
+    int stack_size;
 };
 
 // Node に関する宣言
@@ -56,7 +69,7 @@ Node *new_node_binary(NodeKind kind, Node *lhs, Node *rhs);
 Node *new_node_num(int value);
 
 // 文法に関する宣言
-Node *program();
+Program *program();
 
 // token を操作する関数
 void error(char *string, char *fmt, ...); // 引数も同時に書かないとコンパイラが認識できない。
@@ -66,9 +79,10 @@ Token *consume_ident();
 void expect(char *op);
 int expect_number();
 Token *tokenize();
+char *strndup(char *string, int len);
 
 // アセンブリを作成する関数
-void codegen(Node *node);
+void codegen(Program *prog);
 
 // global 変数
 extern char *user_input;

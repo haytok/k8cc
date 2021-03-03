@@ -1,7 +1,9 @@
 #include "k8cc.h"
 
+Var *locals;
+
 // 関数の循環参照のためのプロトタイプ宣言
-Node *program();
+Program *program();
 Node *stmt();
 Node *expr();
 Node *assign();
@@ -38,14 +40,35 @@ Node *new_unary(NodeKind kind, Node *lhs) {
     return node;
 }
 
-Node *new_lvar(char name) {
-    Node *node = new_node(NODE_LVAR);
-    node->name = name;
+Node *new_var(Var *var) {
+    Node *node = new_node(NODE_VAR);
+    node->var = var;
     return node;
 }
 
+Var *find_var(Token *tkn) {
+    for (Var *l = locals; l; l=l->next) {
+        if (
+            strlen(l->name) == tkn->len &&
+            !memcmp(tkn->string, l->name, tkn->len)
+        ) {
+            return l;
+        }
+    }
+    return NULL;
+}
+
+Var *push_var(char *name) {
+    Var *var = calloc(1, sizeof(Var));
+    var->name = name;
+    var->next = locals;
+    locals = var;
+    return var;
+}
+
 // program = stmt*
-Node *program() {
+Program *program() {
+    locals = NULL;
     // 連結リストで作成していく Node の初期化
     Node head;
     head.next = NULL;
@@ -56,7 +79,10 @@ Node *program() {
         current_node = current_node->next;
     }
 
-    return head.next;
+    Program *program = calloc(1, sizeof(Program));
+    program->node = head.next;
+    program->var = locals;
+    return program;
 }
 
 // stmt = expr ";" | "return" expr ";"
@@ -168,9 +194,16 @@ Node *primary() {
         return node; // この時点で token は ) の次の token を指している
     }
 
+    // 変数に関する処理
     Token *tkn = consume_ident();
     if (tkn) {
-        return new_lvar(*tkn->string);
+        // token が存在にあるか確認する処理
+        Var *var = find_var(tkn);
+        if (!var) {
+            // locals に var を積む処理
+            var = push_var(strndup(tkn->string, tkn->len));
+        }
+        return new_var(var);
     }
 
     return new_node_num(expect_number());  // この時点で token は数字の次の token を指している
