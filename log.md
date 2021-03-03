@@ -19,3 +19,63 @@
 # その他
 - まず、テストケースを実装すると全体像が把握しやすいかも。
 - 方針がなんとなく立てば、とりあえず実装してみて、前半の取っていないといけないテストが通らない時は、前回の実装との整合性が取れておらずバグが生じているので、その調査に取りかかる。
+
+- 複数文字のローカル変数を用いたテストケースのアセンブリ
+
+```asm
+.intel_syntax noprefix
+.global main
+main:
+プロローグ
+  push rbp
+  mov rbp, rsp
+変数のサイズ文だけスタックポインタを下げる
+  sub rsp, 16
+メイン処理に入る foo123=3; 
+case NODE_ASSIGN: の処理が始まる
+  mov rax, rbp
+  sub rax, 16
+  push rax
+この時点でスタックの先頭に変数のアドレスが積まれている
+  push 3
+関数以外の処理が走る。
+  pop rdi
+  pop rax
+  mov [rax], rdi
+  push rdi
+一つのステートメントが終了
+  add rsp, 8
+bar=5; の処理が始まる
+  mov rax, rbp
+  sub rax, 8
+  push rax
+  push 5
+  pop rdi
+  pop rax
+  mov [rax], rdi
+  push rdi
+  add rsp, 8
+  mov rax, rbp
+  sub rax, 16
+  push rax
+  pop rax
+  mov rax, [rax]
+  push rax
+  mov rax, rbp
+  sub rax, 8
+  push rax
+  pop rax
+  mov rax, [rax]
+  push rax
+  pop rdi
+  pop rax
+  add rax, rdi
+  push rax
+  pop rax
+  jmp .Lreturn
+エピローグ
+.Lreturn:
+  mov rsp, rbp
+  pop rbp
+  ret
+```
