@@ -14,6 +14,7 @@
    - int strcmp( const char *str1 , const char *str2 );
    - str1とstr2が等しいならば0、str1 > str2ならば正の値、str1 < str2ならば負の値を返す。
 - 文字を引数とする時は char op で良いが、文字列を引数とする時は char *op でポインタを引数として渡すのが良いはず。
+- `man strcpy` で引数などを調べることができる。
 
 # その他
 - まず、テストケースを実装すると全体像が把握しやすいかも。
