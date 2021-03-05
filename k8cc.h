@@ -39,6 +39,7 @@ typedef enum {
     NODE_EXPR_STMT, // expression statement
     NODE_VAR, // Local variable
     NODE_ASSIGN, // =
+    NODE_IF, // if
 } NodeKind;
 
 struct Node {
@@ -49,6 +50,10 @@ struct Node {
     Node *next;
     int offset;
     Var *var;
+    // if 文に関するメンバ
+    Node *condition;
+    Node *then;
+    Node *els;
 };
 
 struct Var {
