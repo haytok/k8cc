@@ -84,6 +84,26 @@ Token *new_token(TokenKind kind, char *string, Token *old_token, int len) {
     return new_tkn;
 }
 
+// キーワードを返す設計にする
+char *starts_with_reserved(char *string) {
+    static char *keyword[] = {"return", "if", "else"};
+    int keyword_size = sizeof(keyword) / sizeof(*keyword);
+    for (int i = 0; i < keyword_size; i++) {
+        int len = strlen(keyword[i]);
+        if (startswith(string, keyword[i]) && !is_alnum(string[len])) {
+            return keyword[i];
+        }
+    }
+    static char *opts[] = {"==", "!=", "<=", ">="};
+    int opts_size = sizeof(opts) / sizeof(*opts);
+    for (int i = 0; i < opts_size; i++) {
+        if (startswith(string, opts[i])) {
+            return opts[i];
+        }
+    }
+    return NULL;
+}
+
 Token *tokenize() {
     char *string = user_input;
     // 連結リストで作成していく Token の初期化
@@ -96,34 +116,16 @@ Token *tokenize() {
             *string++;
             continue;
         }
-        // == != <= >= に関する処理
-        if (
-            startswith(string, "==") ||
-            startswith(string, "!=") ||
-            startswith(string, "<=") ||
-            startswith(string, ">=")
-        ) {
-            current_token = new_token(TK_RESERVED, string, current_token, 2);
-            string += 2;
+        // 予約語に対するトークナイズ
+        char *reserved_keyword = starts_with_reserved(string);
+        if (reserved_keyword) {
+            int len = strlen(reserved_keyword);
+            current_token = new_token(TK_RESERVED, string, current_token, len);
+            string += len;
             continue;
         }
         if (strchr("+-*/()<>;=", *string)) {
             current_token = new_token(TK_RESERVED, string++, current_token, 1);
-            continue;
-        }
-        if (startswith(string, "return") && !is_alnum(string[6])) {
-            current_token = new_token(TK_RESERVED, string, current_token, 6);
-            string += 6;
-            continue;
-        }
-        if (startswith(string, "if")) {
-            current_token = new_token(TK_RESERVED, string, current_token, 2);
-            string += 2;
-            continue;
-        }
-        if (startswith(string, "else")) {
-            current_token = new_token(TK_RESERVED, string, current_token, 4);
-            string += 4;
             continue;
         }
         if (is_alpha(*string)) {
