@@ -18,12 +18,6 @@ assert() {
 }
 
 # テストケース
-# if statement のテストケース
-assert 3 "if (0) return 2; return 3;"
-assert 3 "if (1-1) return 2; return 3;"
-assert 2 "if (1) return 2; return 3;"
-assert 2 "if (2-1) return 2; return 3;"
-
 assert 0 "return 0;"
 assert 42 "return 42;"
 
@@ -78,5 +72,13 @@ assert 14 "a = 3; b = 5 * 6 - 8; return a + b / 2;"
 # 複数文字のローカル変数を用いたテストケース
 assert 3 "foo=3; return foo;"
 assert 8 "foo123=3; bar=5; return foo123+bar;"
+
+# if statement のテストケース
+assert 3 "if (0) return 2; return 3;"
+assert 3 "if (1-1) return 2; return 3;"
+assert 2 "if (1) return 2; return 3;"
+assert 2 "if (2-1) return 2; return 3;"
+assert 3 "if (0) return 2; else return 3; return 4;"
+assert 2 "if (1) return 2; else return 3; return 4;"
 
 echo OK
