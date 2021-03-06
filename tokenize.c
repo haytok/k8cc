@@ -86,7 +86,7 @@ Token *new_token(TokenKind kind, char *string, Token *old_token, int len) {
 
 // キーワードを返す設計にする
 char *starts_with_reserved(char *string) {
-    static char *keyword[] = {"return", "if", "else"};
+    static char *keyword[] = {"return", "if", "else", "while"};
     int keyword_size = sizeof(keyword) / sizeof(*keyword);
     for (int i = 0; i < keyword_size; i++) {
         int len = strlen(keyword[i]);

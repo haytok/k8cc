@@ -87,6 +87,7 @@ Program *program() {
 
 // stmt = expr ";"
 // | "if" "(" expr ")" stmt ("else" stmt)?
+// | "while" "(" expr ")" stmt
 // | "return" expr ";"
 Node *stmt() {
     if (consume("return")) {
@@ -104,6 +105,16 @@ Node *stmt() {
             if (consume("else")) {
                 node->els = stmt();
             }
+            return node;
+        }
+    }
+
+    if (consume("while")) {
+        if (consume("(")) {
+            Node *node = new_node(NODE_WHILE);
+            node->condition = expr();
+            expect(")");
+            node->then = stmt();
             return node;
         }
     }

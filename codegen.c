@@ -44,30 +44,44 @@ void gen(Node *node) {
             printf("  mov rax, [rax]\n");
             printf("  push rax\n");
             return;
-        case NODE_IF:
+        case NODE_IF: {
+            int seq = label_seq++;
             if (node->els) {
                 // 条件式の処理
                 gen(node->condition);
                 printf("  pop rax\n");
                 printf("  cmp rax, 0\n");
-                printf("  je .Lelse%d\n", label_seq);
+                printf("  je .Lelse%d\n", seq);
                 gen(node->then);
-                printf("  jmp .Lend%d\n", label_seq);
-                printf("  .Lelse%d:\n", label_seq);
+                printf("  jmp .Lend%d\n", seq);
+                printf("  .Lelse%d:\n", seq);
                 gen(node->els);
-                printf("  .Lend%d:\n", label_seq);
+                printf("  .Lend%d:\n", seq);
                 return;
             } else {
                 // 条件式の処理
                 gen(node->condition);
                 printf("  pop rax\n");
                 printf("  cmp rax, 0\n");
-                printf("  je .Lend%d\n", label_seq);
+                printf("  je .Lend%d\n", seq);
                 // B の処理
                 gen(node->then);
-                printf("  .Lend%d:\n", label_seq);
+                printf("  .Lend%d:\n", seq);
                 return;
             }
+        }
+        case NODE_WHILE: {
+            int seq = label_seq++;
+            printf("  .Lbegin%d:\n", seq);
+            gen(node->condition);
+            printf("  pop rax\n");
+            printf("  cmp rax, 0\n");
+            printf("  je .Lend%d\n", seq);
+            gen(node->then);
+            printf("  jmp .Lbegin%d\n", seq);
+            printf("  .Lend%d:\n", seq);
+            return;
+        }
         case NODE_RETURN:
             gen(node->lhs);
 
