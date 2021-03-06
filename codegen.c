@@ -50,7 +50,7 @@ void gen(Node *node) {
                 gen(node->condition);
                 printf("  pop rax\n");
                 printf("  cmp rax, 0\n");
-                printf("  je .Lend%d\n", label_seq);
+                printf("  je .Lelse%d\n", label_seq);
                 gen(node->then);
                 printf("  jmp .Lend%d\n", label_seq);
                 printf("  .Lelse%d:\n", label_seq);
