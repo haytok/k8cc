@@ -85,12 +85,27 @@ Program *program() {
     return program;
 }
 
-// stmt = expr ";" | "return" expr ";"
+// stmt = expr ";"
+// | "if" "(" expr ")" stmt ("else" stmt)?
+// | "return" expr ";"
 Node *stmt() {
     if (consume("return")) {
         Node *node = new_unary(NODE_RETURN, expr());
         expect(";");
         return node;
+    }
+
+    if (consume("if")) {
+        if (consume("(")) {
+            Node *node = new_node(NODE_IF);
+            node->condition = expr();
+            expect(")");
+            node->then = stmt();
+            if (consume("else")) {
+                node->els = stmt();
+            }
+            return node;
+        }
     }
 
     // Node *node = expr();
@@ -127,7 +142,7 @@ Node *equality() {
 }
 
 // add ("<" add | "<=" add | ">" add | ">=" add )*
-Node *relational(){
+Node *relational() {
     Node *node = add();
 
     for (;;) {
@@ -146,7 +161,7 @@ Node *relational(){
 }
 
 // add ("<" add | "<=" add | ">" add | ">=" add)*
-Node *add(){
+Node *add() {
     Node *node = mul();
 
     for (;;) {

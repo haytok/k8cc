@@ -1,5 +1,7 @@
 #include "k8cc.h"
 
+int label_seq = 0;
+
 // 左辺値のアセンブリを出力
 void gen_lval(Node *node) {
     if (node->kind != NODE_VAR) {
@@ -42,6 +44,30 @@ void gen(Node *node) {
             printf("  mov rax, [rax]\n");
             printf("  push rax\n");
             return;
+        case NODE_IF:
+            if (node->els) {
+                // 条件式の処理
+                gen(node->condition);
+                printf("  pop rax\n");
+                printf("  cmp rax, 0\n");
+                printf("  je .Lend%d\n", label_seq);
+                gen(node->then);
+                printf("  jmp .Lend%d\n", label_seq);
+                printf("  .Lelse%d:\n", label_seq);
+                gen(node->els);
+                printf("  .Lend%d:\n", label_seq);
+                return;
+            } else {
+                // 条件式の処理
+                gen(node->condition);
+                printf("  pop rax\n");
+                printf("  cmp rax, 0\n");
+                printf("  je .Lend%d\n", label_seq);
+                // B の処理
+                gen(node->then);
+                printf("  .Lend%d:\n", label_seq);
+                return;
+            }
         case NODE_RETURN:
             gen(node->lhs);
 

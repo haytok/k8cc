@@ -116,6 +116,11 @@ Token *tokenize() {
             string += 6;
             continue;
         }
+        if (startswith(string, "if")) {
+            current_token = new_token(TK_RESERVED, string, current_token, 2);
+            string += 2;
+            continue;
+        }
         if (is_alpha(*string)) {
             char *start = string;
             string++;
