@@ -1,6 +1,7 @@
 #include "k8cc.h"
 
 int label_seq = 0;
+char *arg_register[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
 // 左辺値のアセンブリを出力
 void gen_lval(Node *node) {
@@ -109,6 +110,15 @@ void gen(Node *node) {
             return;
         }
         case NODE_FUNCALL: {
+            int arg_n = 0;
+            for (Node *arg = node->args; arg; arg = arg->next) {
+                // printf("  push %d\n", arg->value); // return add(3 + 5, 5); のケースで落ちるので以下の処理のほうが適切。
+                gen(arg);
+                arg_n++;
+            }
+            for (int i = arg_n - 1; i >= 0; i--) {
+                printf("  pop %s\n", arg_register[i]);
+            }
             printf("  call %s\n", node->function_name);
             printf("  push rax\n"); // 関数で計算した結果をスタックに積む解釈で大丈夫か？
             return;

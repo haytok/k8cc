@@ -85,3 +85,36 @@ bar=5; の処理が始まる
 char *keyword[] = {"return", "if", "else"};
 int keyword_size = sizeof(keyword) / sizeof(*keyword);
 ```
+
+- 以下のテストケースにおけるコンパイラで吐き出したアセンブリ
+
+```c
+assert 13 "return add(add(3, 5), 5);"
+```
+
+```asm
+.intel_syntax noprefix
+.global main
+main:
+  push rbp
+  mov rbp, rsp
+  sub rsp, 0
+  # メインの処理
+  push 3
+  push 5
+  pop rsi
+  pop rdi
+  call add
+  push rax
+  push 5
+  pop rsi
+  pop rdi
+  call add
+  push rax
+  pop rax
+  jmp .Lreturn
+.Lreturn:
+  mov rsp, rbp
+  pop rbp
+  ret
+```

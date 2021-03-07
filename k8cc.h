@@ -62,6 +62,7 @@ struct Node {
     Node *inc;
     Node *body; // block
     char *function_name;
+    Node *args; // args of function
 };
 
 struct Var {

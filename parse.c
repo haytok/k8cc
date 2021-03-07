@@ -66,6 +66,26 @@ Var *push_var(char *name) {
     return var;
 }
 
+// function_args = "(" (assign (, assign)*)? ")"
+Node *function_args() {
+    if (consume(")")) {
+        return NULL;
+    }
+
+    // 引数が最低一つは存在している前提
+    Node *head = assign();
+    Node *current_node = head;
+
+    while (consume(",")) {
+        // node->args に付け足す処理
+        current_node->next = assign();
+        current_node = current_node->next;
+    }
+    expect(")");
+
+    return head;
+}
+
 // program = stmt*
 Program *program() {
     locals = NULL;
@@ -249,8 +269,9 @@ Node *unary() {
     return primary();
 }
 
+// function_args = "(" (assign (, assign)*)? ")"
 // primary = num
-// | ident ("(" ")")?
+// | ident function_args?
 // | "(" expr ")"
 Node *primary() {
     if (consume("(")) {
@@ -266,7 +287,7 @@ Node *primary() {
         if (consume("(")) {
             Node *node = new_node(NODE_FUNCALL);
             node->function_name = strndup(tkn->string, tkn->len);
-            expect(")");
+            node->args = function_args();
             return node;
         }
         // token が存在にあるか確認する処理
