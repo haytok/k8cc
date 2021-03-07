@@ -88,6 +88,7 @@ Program *program() {
 // stmt = expr ";"
 // | "if" "(" expr ")" stmt ("else" stmt)?
 // | "while" "(" expr ")" stmt
+// | "for" "(" expr? ";" expr? ";" expr? ")" stmt
 // | "return" expr ";"
 Node *stmt() {
     if (consume("return")) {
@@ -114,6 +115,26 @@ Node *stmt() {
             Node *node = new_node(NODE_WHILE);
             node->condition = expr();
             expect(")");
+            node->then = stmt();
+            return node;
+        }
+    }
+
+    if (consume("for")) {
+        if (consume("(")) {
+            Node *node = new_node(NODE_FOR);
+            if (!consume(";")) {
+                node->init = expr();
+                expect(";");
+            }
+            if (!consume(";")) {
+                node->condition = expr();
+                expect(";");
+            }
+            if (!consume(")")) {
+                node->inc = expr();
+                expect(")");
+            }
             node->then = stmt();
             return node;
         }

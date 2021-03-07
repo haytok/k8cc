@@ -41,6 +41,7 @@ typedef enum {
     NODE_ASSIGN, // =
     NODE_IF, // if
     NODE_WHILE, // while
+    NODE_FOR, // for
 } NodeKind;
 
 struct Node {
@@ -51,10 +52,12 @@ struct Node {
     Node *next;
     int offset;
     Var *var;
-    // if statement or while statement に関するメンバ
+    // if statement or while or for statement に関するメンバ
     Node *condition;
     Node *then;
     Node *els;
+    Node *init;
+    Node *inc;
 };
 
 struct Var {
