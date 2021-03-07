@@ -111,6 +111,6 @@ assert 5 "return ret5();"
 # 引数が 6 個までの関数のテストケース
 assert 8 "return add(3, 5);"
 assert 2 "return sub(5, 3);"
-assert 21 "return add6(1,2,3,4,5,6);"
+assert 21 "return add6(1, 2, 3, 4, 5, 6);"
 
 echo OK
