@@ -112,5 +112,7 @@ assert 5 "return ret5();"
 assert 8 "return add(3, 5);"
 assert 2 "return sub(5, 3);"
 assert 21 "return add6(1, 2, 3, 4, 5, 6);"
+assert 13 "return add(3 + 5, 5);"
+assert 13 "return add(add(3, 5), 5);"
 
 echo OK
