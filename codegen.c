@@ -119,7 +119,20 @@ void gen(Node *node) {
             for (int i = arg_n - 1; i >= 0; i--) {
                 printf("  pop %s\n", arg_register[i]);
             }
+            label_seq++;
+            printf("  mov rax, rsp\n");
+            printf("  and rax, 15\n");
+            printf("  jnz .Lcall%d\n", label_seq);
+            printf("  mov rax, 0\n");
             printf("  call %s\n", node->function_name);
+            printf("  jmp .Lend%d\n", label_seq);
+            // 16 バイトになっていない時の処理
+            printf("  .Lcall%d:\n", label_seq);
+            printf("  sub rsp, 8\n");
+            printf("  mov rax, 0\n");
+            printf("  call %s\n", node->function_name);
+            printf("  add rsp, 8\n");
+            printf("  .Lend%d:\n", label_seq);
             printf("  push rax\n"); // 関数で計算した結果をスタックに積む解釈で大丈夫か？
             return;
         }
