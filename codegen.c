@@ -108,6 +108,11 @@ void gen(Node *node) {
             }
             return;
         }
+        case NODE_FUNCALL: {
+            printf("  call %s\n", node->function_name);
+            printf("  push rax\n"); // 関数で計算した結果をスタックに積む解釈で大丈夫か？
+            return;
+        }
         case NODE_RETURN:
             gen(node->lhs);
 

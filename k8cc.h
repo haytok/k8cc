@@ -43,6 +43,7 @@ typedef enum {
     NODE_WHILE, // while
     NODE_FOR, // for
     NODE_BLOCK,
+    NODE_FUNCALL, // function
 } NodeKind;
 
 struct Node {
@@ -60,6 +61,7 @@ struct Node {
     Node *init;
     Node *inc;
     Node *body; // block
+    char *function_name;
 };
 
 struct Var {

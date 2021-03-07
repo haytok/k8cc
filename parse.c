@@ -249,7 +249,9 @@ Node *unary() {
     return primary();
 }
 
-// num | ident | "(" expr ")"
+// primary = num
+// | ident ("(" ")")?
+// | "(" expr ")"
 Node *primary() {
     if (consume("(")) {
         Node *node = expr();
@@ -260,6 +262,13 @@ Node *primary() {
     // 変数に関する処理
     Token *tkn = consume_ident();
     if (tkn) {
+        // トークンが関数で使われているかを検証
+        if (consume("(")) {
+            Node *node = new_node(NODE_FUNCALL);
+            node->function_name = strndup(tkn->string, tkn->len);
+            expect(")");
+            return node;
+        }
         // token が存在にあるか確認する処理
         Var *var = find_var(tkn);
         if (!var) {
