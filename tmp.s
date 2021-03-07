@@ -22,14 +22,6 @@ main:
   mov [rax], rdi
   push rdi
   add rsp, 8
-  mov rax, rbp
-  sub rax, 16
-  push rax
-  push 0
-  pop rdi
-  pop rax
-  mov [rax], rdi
-  push rdi
   .Lbegin0:
   mov rax, rbp
   sub rax, 16
@@ -47,22 +39,6 @@ main:
   pop rax
   cmp rax, 0
   je .Lend0
-  push 5
-  mov rax, rbp
-  sub rax, 16
-  push rax
-  pop rax
-  mov rax, [rax]
-  push rax
-  pop rdi
-  pop rax
-  cmp rax, rdi
-  setl al
-  movzb rax, al
-  push rax
-  pop rax
-  cmp rax, 0
-  je .Lend1
   mov rax, rbp
   sub rax, 8
   push rax
@@ -87,7 +63,6 @@ main:
   mov [rax], rdi
   push rdi
   add rsp, 8
-  .Lend1:
   mov rax, rbp
   sub rax, 16
   push rax
@@ -106,6 +81,7 @@ main:
   pop rax
   mov [rax], rdi
   push rdi
+  add rsp, 8
   jmp .Lbegin0
   .Lend0:
   mov rax, rbp

@@ -42,6 +42,7 @@ typedef enum {
     NODE_IF, // if
     NODE_WHILE, // while
     NODE_FOR, // for
+    NODE_BLOCK,
 } NodeKind;
 
 struct Node {
@@ -58,6 +59,7 @@ struct Node {
     Node *els;
     Node *init;
     Node *inc;
+    Node *body; // block
 };
 
 struct Var {

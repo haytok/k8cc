@@ -86,6 +86,7 @@ Program *program() {
 }
 
 // stmt = expr ";"
+// | "{" stmt* "}"
 // | "if" "(" expr ")" stmt ("else" stmt)?
 // | "while" "(" expr ")" stmt
 // | "for" "(" expr? ";" expr? ";" expr? ")" stmt
@@ -94,6 +95,21 @@ Node *stmt() {
     if (consume("return")) {
         Node *node = new_unary(NODE_RETURN, expr());
         expect(";");
+        return node;
+    }
+
+    if (consume("{")) {
+        Node head;
+        head.next = NULL;
+        Node *current_node = &head;
+
+        while (!consume("}")) {
+            current_node->next = stmt();
+            current_node = current_node->next;
+        }
+
+        Node *node = new_node(NODE_BLOCK);
+        node->body = head.next;
         return node;
     }
 
