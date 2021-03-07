@@ -1,11 +1,17 @@
 #!/bin/bash
+# 別のオブジェクトファイルを作成して、リンカでリンクさせる。
+# 自作コンパイラ側で以下の関数を呼び出す。
+cat <<EOF | gcc -xc -c -o tmp2.o -
+int ret3() { return 3; }
+int ret5() { return 5; }
+EOF
 
 assert() {
     expected="$1"
     input="$2"
 
     ./k8cc "$input" > tmp.s
-    gcc -o tmp tmp.s
+    gcc -o tmp tmp.s tmp2.o
     ./tmp
     actual="$?"
 
@@ -92,5 +98,9 @@ assert 40 "i=0; j=0; for (i=0; i<=10; i=i+1) if (i>5) j = i+j; return j;"
 # ブロックのテストケース
 assert 3 "{1; {2;} return 3;}"
 assert 55 "i=0; j=0; while(i<=10) {j=i+j; i=i+1;} return j;"
+
+# 引数が無い関数のテストケース
+assert 3 "return ret3();"
+assert 5 "return ret5();"
 
 echo OK
