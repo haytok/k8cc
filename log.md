@@ -118,3 +118,88 @@ main:
   pop rbp
   ret
 ```
+
+- 疑問
+  - 関数の定義のコンパイラを実装する段階で以下の実装の違いがわからんかった。
+
+```c
+Function *program() {
+    Function head;
+    head.next = NULL;
+    Function *current_function = &head;
+
+    while (!at_eof()) {
+        current_function->next = function();
+        current_function = current_function->next;
+    }
+
+    return head.next;
+}
+
+Function *program() {
+    Function *head;
+    head->next = NULL;
+    Function *current_function = head;
+
+    while (!at_eof()) {
+        current_function->next = function();
+        current_function = current_function->next;
+    }
+
+    return head;
+}
+```
+- 関数のアセンブラのラベルについて
+  - .global は関数毎に持っていて、ret も同様である。
+
+```asm
+.intel_syntax noprefix
+
+# main 関数の定義
+.global main
+main:
+# プロローグ
+  push rbp
+  mov rbp, rsp
+  sub rsp, 0
+
+  mov rax, rsp
+  and rax, 15
+  jnz .Lcall1
+  mov rax, 0
+  call ret32
+  jmp .Lend1
+  .Lcall1:
+  sub rsp, 8
+  mov rax, 0
+  call ret32
+  add rsp, 8
+  .Lend1:
+  push rax
+  pop rax
+  jmp .Lreturn.main
+# エピローグ
+.Lreturn.main:
+  mov rsp, rbp
+  pop rbp
+  ret
+
+# ret32 関数の定義
+.global ret32
+ret32:
+# プロローグ
+  push rbp
+  mov rbp, rsp
+  sub rsp, 0
+
+  push 32
+  pop rax
+  jmp .Lreturn.ret32
+# エピローグ
+.Lreturn.ret32:
+  mov rsp, rbp
+  pop rbp
+  ret
+```
+
+- 適当にアセンブラを書いて実装のイメージを湧かしても良かったかもしれない。具体から抽象の書き起こし。
