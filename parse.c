@@ -3,7 +3,7 @@
 Var *locals;
 
 // 関数の循環参照のためのプロトタイプ宣言
-Program *program();
+Function *function();
 Node *stmt();
 Node *expr();
 Node *assign();
@@ -86,23 +86,44 @@ Node *function_args() {
     return head;
 }
 
-// program = stmt*
-Program *program() {
+// program = function*
+Function *program() {
+    Function head;
+    head.next = NULL;
+    Function *current_function = &head;
+
+    while (!at_eof()) {
+        current_function->next = function();
+        current_function = current_function->next;
+    }
+
+    return head.next;
+}
+
+// function = ident "(" ")" "{" stmt* "}"
+Function *function() {
     locals = NULL;
-    // 連結リストで作成していく Node の初期化
+
+    char *function_name = expect_ident();
+    expect("(");
+    expect(")");
+    expect("{");
+
+    // stmt の処理
     Node head;
     head.next = NULL;
     Node *current_node = &head;
-
-    while (!at_eof()) {
+    while (!consume("}")) {
         current_node->next = stmt();
         current_node = current_node->next;
     }
 
-    Program *program = calloc(1, sizeof(Program));
-    program->node = head.next;
-    program->var = locals;
-    return program;
+    Function *function = calloc(1, sizeof(Function));
+    function->function_name = function_name;
+    function->node = head.next;
+    function->var = locals;
+
+    return function;
 }
 
 // stmt = expr ";"

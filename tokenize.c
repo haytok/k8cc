@@ -60,18 +60,27 @@ void expect(char *op) {
         memcmp(token->string, op, token->len) ||
         strlen(op) != token->len
     ) {
-        error(token->string, "'%c'ではありません。\n", op);
+        error(token->string, "Invalid token in expect function due to '%c'.\n", op);
     }
     token = token->next;
 }
 
 int expect_number() {
     if (token->kind != TK_NUM) {
-        error(token->string, "数ではありません。");
+        error(token->string, "Invalid token in expect_number function.");
     }
     int value = token->value;
     token = token->next;
     return value;
+}
+
+char *expect_ident() {
+    if (token->kind != TK_IDENT) {
+        error(token->string, "Invalid token in expect_ident function.");
+    }
+    char *function_name = strndup(token->string, token->len);
+    token = token->next;
+    return function_name;
 }
 
 // token を作成するのは基本的にこの関数を通す

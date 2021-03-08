@@ -11,14 +11,17 @@ int main(int argc, char *argv[]) {
 
     user_input = argv[1];
     token = tokenize();
-    Program *prog = program();
+    Function *prog = program();
 
-    int offset = 0;
-    for (Var *v = prog->var; v; v = v->next) {
-        offset += 8;
-        v->offset = offset;
+    for (Function *f = prog; f; f = f->next) {
+        int offset = 0;
+        for (Var *v = prog->var; v; v = v->next) {
+            offset += 8;
+            v->offset = offset;
+        }
+        prog->stack_size = offset;
+
     }
-    prog->stack_size = offset;
 
     codegen(prog);
 

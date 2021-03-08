@@ -8,7 +8,7 @@
 typedef struct Token Token;
 typedef struct Node Node;
 typedef struct Var Var;
-typedef struct Program Program;
+typedef struct Function Function;
 
 typedef enum {
   TK_RESERVED,
@@ -71,7 +71,9 @@ struct Var {
     int offset;
 };
 
-struct Program {
+struct Function {
+    Function *next;
+    char *function_name;
     Node *node;
     Var *var;
     int stack_size;
@@ -83,7 +85,7 @@ Node *new_node_binary(NodeKind kind, Node *lhs, Node *rhs);
 Node *new_node_num(int value);
 
 // 文法に関する宣言
-Program *program();
+Function *program();
 
 // token を操作する関数
 void error(char *string, char *fmt, ...); // 引数も同時に書かないとコンパイラが認識できない。
@@ -92,11 +94,12 @@ bool consume(char *op);
 Token *consume_ident();
 void expect(char *op);
 int expect_number();
+char *expect_ident();
 Token *tokenize();
 char *strndup(char *string, int len);
 
 // アセンブリを作成する関数
-void codegen(Program *prog);
+void codegen(Function *prog);
 
 // global 変数
 extern char *user_input;

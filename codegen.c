@@ -2,6 +2,7 @@
 
 int label_seq = 0;
 char *arg_register[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+char *function_name;
 
 // 左辺値のアセンブリを出力
 void gen_lval(Node *node) {
@@ -141,7 +142,7 @@ void gen(Node *node) {
 
             printf("  pop rax\n");
             // printf("  ret\n");
-            printf("  jmp .Lreturn\n");
+            printf("  jmp .Lreturn.%s\n", function_name);
             return;
     }
 
@@ -193,26 +194,30 @@ void gen(Node *node) {
     printf("  push rax\n");
 }
 
-void codegen(Program *prog) {
+void codegen(Function *prog) {
     printf(".intel_syntax noprefix\n");
-    printf(".global main\n");
-    printf("main:\n");
 
-    // プロローグ
-    printf("  push rbp\n");
-    printf("  mov rbp, rsp\n");
-    printf("  sub rsp, %d\n", prog->stack_size);
+    for (Function *f = prog; f; f = f->next) {
+        function_name = f->function_name;
+        printf(".global %s\n", function_name);
+        printf("%s:\n", function_name);
+
+        // プロローグ
+        printf("  push rbp\n");
+        printf("  mov rbp, rsp\n");
+        printf("  sub rsp, %d\n", f->stack_size);
 
 
-    for (Node *n = prog->node; n; n=n->next) {
-        gen(n);
-        // printf("  pop rax\n");
+        for (Node *n = f->node; n; n=n->next) {
+            gen(n);
+            // printf("  pop rax\n");
+        }
+
+        // エピローグ
+        printf(".Lreturn.%s:\n", function_name);
+        printf("  mov rsp, rbp\n");
+        printf("  pop rbp\n");
+
+        printf("  ret\n");
     }
-
-    // エピローグ
-    printf(".Lreturn:\n");
-    printf("  mov rsp, rbp\n");
-    printf("  pop rbp\n");
-
-    printf("  ret\n");
 }
