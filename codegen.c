@@ -212,6 +212,7 @@ void codegen(Function *prog) {
         int i = 0;
         for (VarList *p = f->params; p; p = p->next) {
             Var *v = p->var;
+            // v->name には x, y などの定義された関数の引数名が入っている。
             printf("  mov [rbp-%d], %s\n", v->offset, arg_register[i++]);
         }
 

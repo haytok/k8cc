@@ -97,6 +97,8 @@ VarList *read_function_params() {
     }
 
     // 初期化
+    // locals に追加しつつ、独自に current_var_list に Var 型のオブジェクトを繋げていっている。
+    // なので、f->params を for 文で回しても local 変数は現れず、引数のみ現れる。
     VarList *head = calloc(1, sizeof(VarList));
     head->var = push_var(expect_ident());
     VarList *current_var_list = head;
@@ -134,6 +136,7 @@ Function *function() {
     function->function_name = expect_ident();
     expect("(");
     // params の処理
+    // read_function_params 関数で引数を locals に付け足す実装になっている。
     function->params = read_function_params();
     expect("{");
 
