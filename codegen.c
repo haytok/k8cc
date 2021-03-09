@@ -120,20 +120,20 @@ void gen(Node *node) {
             for (int i = arg_n - 1; i >= 0; i--) {
                 printf("  pop %s\n", arg_register[i]);
             }
-            label_seq++;
+            int seq = label_seq++;
             printf("  mov rax, rsp\n");
             printf("  and rax, 15\n");
-            printf("  jnz .Lcall%d\n", label_seq);
+            printf("  jnz .Lcall%d\n", seq);
             printf("  mov rax, 0\n");
             printf("  call %s\n", node->function_name);
-            printf("  jmp .Lend%d\n", label_seq);
+            printf("  jmp .Lend%d\n", seq);
             // 16 バイトになっていない時の処理
-            printf("  .Lcall%d:\n", label_seq);
+            printf("  .Lcall%d:\n", seq);
             printf("  sub rsp, 8\n");
             printf("  mov rax, 0\n");
             printf("  call %s\n", node->function_name);
             printf("  add rsp, 8\n");
-            printf("  .Lend%d:\n", label_seq);
+            printf("  .Lend%d:\n", seq);
             printf("  push rax\n"); // 関数で計算した結果をスタックに積む解釈で大丈夫か？
             return;
         }
@@ -207,8 +207,15 @@ void codegen(Function *prog) {
         printf("  mov rbp, rsp\n");
         printf("  sub rsp, %d\n", f->stack_size);
 
+        // 呼び出された側での引数の値をローカル変数に存在するものとしてコンパイル
+        // 引数ありの関数呼び出しを行った際に走る処理
+        int i = 0;
+        for (VarList *p = f->params; p; p = p->next) {
+            Var *v = p->var;
+            printf("  mov [rbp-%d], %s\n", v->offset, arg_register[i++]);
+        }
 
-        for (Node *n = f->node; n; n=n->next) {
+        for (Node *n = f->node; n; n = n->next) {
             gen(n);
             // printf("  pop rax\n");
         }

@@ -8,6 +8,7 @@
 typedef struct Token Token;
 typedef struct Node Node;
 typedef struct Var Var;
+typedef struct VarList VarList;
 typedef struct Function Function;
 
 typedef enum {
@@ -66,17 +67,23 @@ struct Node {
 };
 
 struct Var {
-    Var *next;
+    // Var *next;
     char *name;
     int offset;
+};
+
+struct VarList {
+    VarList *next;
+    Var *var;
 };
 
 struct Function {
     Function *next;
     char *function_name;
     Node *node;
-    Var *var;
+    VarList *locals;
     int stack_size;
+    VarList *params;
 };
 
 // Node に関する宣言

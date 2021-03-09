@@ -1,6 +1,6 @@
 #include "k8cc.h"
 
-Var *locals;
+VarList *locals;
 
 // 関数の循環参照のためのプロトタイプ宣言
 Function *function();
@@ -47,12 +47,13 @@ Node *new_var(Var *var) {
 }
 
 Var *find_var(Token *tkn) {
-    for (Var *l = locals; l; l=l->next) {
+    for (VarList *l = locals; l; l=l->next) {
+        Var *var = l->var;
         if (
-            strlen(l->name) == tkn->len &&
-            !memcmp(tkn->string, l->name, tkn->len)
+            strlen(var->name) == tkn->len &&
+            !memcmp(tkn->string, var->name, tkn->len)
         ) {
-            return l;
+            return var;
         }
     }
     return NULL;
@@ -61,8 +62,11 @@ Var *find_var(Token *tkn) {
 Var *push_var(char *name) {
     Var *var = calloc(1, sizeof(Var));
     var->name = name;
-    var->next = locals;
-    locals = var;
+
+    VarList *vl = calloc(1, sizeof(VarList));
+    vl->var = var;
+    vl->next = locals;
+    locals = vl;
     return var;
 }
 
@@ -86,6 +90,27 @@ Node *function_args() {
     return head;
 }
 
+// params = ident ("," ident)*
+VarList *read_function_params() {
+    if (consume(")")) {
+        return NULL;
+    }
+
+    // 初期化
+    VarList *head = calloc(1, sizeof(VarList));
+    head->var = push_var(expect_ident());
+    VarList *current_var_list = head;
+
+    while (!consume(")")) {
+        expect(",");
+        current_var_list->next = calloc(1, sizeof(VarList));
+        current_var_list->next->var = push_var(expect_ident());
+        current_var_list = current_var_list->next;
+    }
+
+    return head;
+}
+
 // program = function*
 Function *program() {
     Function head;
@@ -100,13 +125,16 @@ Function *program() {
     return head.next;
 }
 
-// function = ident "(" ")" "{" stmt* "}"
+// function = ident "(" params? ")" "{" stmt* "}"
+// params = ident ("," ident)*
 Function *function() {
     locals = NULL;
 
-    char *function_name = expect_ident();
+    Function *function = calloc(1, sizeof(Function));
+    function->function_name = expect_ident();
     expect("(");
-    expect(")");
+    // params の処理
+    function->params = read_function_params();
     expect("{");
 
     // stmt の処理
@@ -118,10 +146,8 @@ Function *function() {
         current_node = current_node->next;
     }
 
-    Function *function = calloc(1, sizeof(Function));
-    function->function_name = function_name;
     function->node = head.next;
-    function->var = locals;
+    function->locals = locals;
 
     return function;
 }

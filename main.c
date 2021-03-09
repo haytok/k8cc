@@ -15,12 +15,11 @@ int main(int argc, char *argv[]) {
 
     for (Function *f = prog; f; f = f->next) {
         int offset = 0;
-        for (Var *v = prog->var; v; v = v->next) {
+        for (VarList *v = f->locals; v; v = v->next) {
             offset += 8;
-            v->offset = offset;
+            v->var->offset = offset;
         }
-        prog->stack_size = offset;
-
+        f->stack_size = offset;
     }
 
     codegen(prog);
