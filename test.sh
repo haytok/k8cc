@@ -125,5 +125,6 @@ assert 12 "main() { return mul2(3,4); } mul2(x,y) { return x*y; }"
 assert 1 "main() { return sub2(4,3); } sub2(x,y) { return x-y; }"
 assert 55 "main() { return fib(9); } fib(x) { if (x<=1) return 1; return fib(x-1) + fib(x-2); }"
 assert 8 "main() { return add2(add2(4,3), sub2(4,3)); } add2(x,y) { return x+y; } sub2(x,y) { return x-y; }"
+assert 8 "main() { return add2(3,4); } add2(x,y) { a=1; return a+x+y; }"
 
 echo OK
