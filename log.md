@@ -203,3 +203,89 @@ ret32:
 ```
 
 - 適当にアセンブラを書いて実装のイメージを湧かしても良かったかもしれない。具体から抽象の書き起こし。
+
+- `assert 7 "main() { return add2(3,4); } add2(x,y) { return x+y; }"`
+
+```asm
+.intel_syntax noprefix
+.global main
+main:
+# プロローグ
+  push rbp
+  mov rbp, rsp
+  sub rsp, 0
+
+# main 関数で呼び出した add2 関数の引数をレジスタに格納している。
+  push 3
+  push 4
+  pop rsi
+  pop rdi
+  mov rax, rsp
+  and rax, 15
+  jnz .Lcall0
+  mov rax, 0
+  call add2 # call
+  jmp .Lend0
+  .Lcall0:
+  sub rsp, 8
+  mov rax, 0
+  call add2 # call
+  add rsp, 8
+  .Lend0:
+  push rax
+  pop rax
+  jmp .Lreturn.main
+.Lreturn.main:
+  mov rsp, rbp
+  pop rbp
+  ret
+.global add2
+add2:
+# プロローグ
+  push rbp
+  mov rbp, rsp
+  sub rsp, 16
+
+  mov [rbp-16], rdi # 第一引数がベースポインタより二つ下のスタックにあるアドレスがの先コピー
+  mov [rbp-8], rsi # 第二引数がベースポインタより一つ下のスタックにあるアドレスがの先コピー
+
+# for (Node *n = f->node; n; n = n->next) {gen(n);} の処理が走る
+# case NODE_VAR:
+# gen_lval が吐き出すアセンブラ
+  mov rax, rbp
+  sub rax, 16
+  push rax
+  pop rax
+  mov rax, [rax]
+  push rax
+
+  mov rax, rbp
+  sub rax, 8
+  push rax
+  pop rax
+  mov rax, [rax]
+  push rax
+
+  pop rdi
+  pop rax
+
+  add rax, rdi # +
+  push rax
+# return
+  pop rax
+  jmp .Lreturn.add2
+.Lreturn.add2:
+  mov rsp, rbp
+  pop rbp
+  ret
+```
+
+- codegen.c で以下の処理が呼び出せる理由がわからない。main 関数では、f->locals->var->offset に 8, 16 を代入しているが、以下の f->params->var->offset には値が入ってないと思った。参照が同一だから、値が入っているのかも。
+
+```c
+int i = 0;
+for (VarList *p = f->params; p; p = p->next) {
+    Var *v = p->var;
+    printf("  mov [rbp-%d], %s\n", v->offset, arg_register[i++]);
+}
+```
