@@ -371,3 +371,31 @@ add2:
   pop rbp
   ret
 ```
+
+- エラー文を表示する際に用いる変数や関数
+- `fmt` (format)
+- `stderr`
+
+- `va_list`
+- `va_start`
+- printf などの関数では、第二引数以降の可変長引数にアクセスする必要がある。この可変長引数リストにアクセスするには、`va_list` 型の変数に引数リストのポインタを指定する。それが以下の処理になる。
+
+```c
+void error_at(char *fmt, ...) {
+  va_list ap;
+  va_start(ap, fmt);
+}
+```
+
+- `fprintf`
+- ストリームにフォーマットされた文字列を出力する。
+- 例えば `fprintf(stderr, "\n");` のケースだと標準エラー出力に "\n" を書き込むという意味である。定義は以下である。
+```c
+int fprintf(FILE *stream, const char *format, ...);
+```
+
+- `vfprintf`
+- 定義は以下である。`fprintf` の可変長引数リストを `va_list arg` に置き換えたものである。
+```c
+int vfprintf(FILE *stream, const char *format, va_list arg);
+```
