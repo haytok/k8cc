@@ -3,14 +3,28 @@
 char *user_input; // コンパイルエラーを表示するための変数
 Token *token;
 
-void error(char *string, char *fmt, ...) {
-    va_list ap;
-    va_start(ap, fmt);
-
+void verror_at(char *string, char *fmt, va_list ap) {
     int counts = string - user_input;
     fprintf(stderr, "%s\n", user_input);
     fprintf(stderr, "%*s", counts, " ");
     fprintf(stderr, "^ ");
+    vfprintf(stderr, fmt, ap);
+    fprintf(stderr, "\n");
+    exit(1);
+}
+
+void error_at(char *string, char *fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    verror_at(string, fmt, ap);
+}
+
+void error_token(Token *token, char *fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    if (token) {
+        verror_at(token->string, fmt, ap);
+    }
     vfprintf(stderr, fmt, ap);
     fprintf(stderr, "\n");
     exit(1);
@@ -32,16 +46,17 @@ bool is_alnum(char c) {
 bool at_eof() { return token->kind == TK_EOF; }
 
 // 演算子に関する処理を実装
-bool consume(char *op) {
+Token *consume(char *op) {
     if (
         token->kind != TK_RESERVED ||
         memcmp(token->string, op, token->len) ||
         strlen(op) != token->len
     ) {
-        return false;
+        return NULL;
     }
+    Token *tkn = token;
     token = token->next;
-    return true;
+    return tkn;
 }
 
 // 一文字の変数のトークンに関する処理
@@ -60,14 +75,14 @@ void expect(char *op) {
         memcmp(token->string, op, token->len) ||
         strlen(op) != token->len
     ) {
-        error(token->string, "Invalid token in expect function due to '%c'.\n", op);
+        error_token(token, "Invalid token in expect function due to '%c'.\n", op);
     }
     token = token->next;
 }
 
 int expect_number() {
     if (token->kind != TK_NUM) {
-        error(token->string, "Invalid token in expect_number function.");
+        error_token(token, "Invalid token in expect_number function.");
     }
     int value = token->value;
     token = token->next;
@@ -76,7 +91,7 @@ int expect_number() {
 
 char *expect_ident() {
     if (token->kind != TK_IDENT) {
-        error(token->string, "Invalid token in expect_ident function.");
+        error_token(token, "Invalid token in expect_ident function.");
     }
     char *function_name = strndup(token->string, token->len);
     token = token->next;
@@ -154,7 +169,7 @@ Token *tokenize() {
             current_token->len = string - tmp;
             continue;
         }
-        error(string, "トークナイズできません。");
+        error_at(string, "トークナイズできません。");
     }
     current_token = new_token(TK_EOF, string, current_token, 0);
     return head.next;

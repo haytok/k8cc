@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stdarg.h>
 #include <string.h>
+#include <stdarg.h>
 
 typedef struct Token Token;
 typedef struct Node Node;
@@ -64,6 +65,7 @@ struct Node {
     Node *body; // block
     char *function_name;
     Node *args; // args of function
+    Token *token;
 };
 
 struct Var {
@@ -86,18 +88,14 @@ struct Function {
     VarList *params;
 };
 
-// Node に関する宣言
-Node *new_node(NodeKind kind);
-Node *new_node_binary(NodeKind kind, Node *lhs, Node *rhs);
-Node *new_node_num(int value);
-
 // 文法に関する宣言
 Function *program();
 
 // token を操作する関数
-void error(char *string, char *fmt, ...); // 引数も同時に書かないとコンパイラが認識できない。
+void error_at(char *string, char *fmt, ...); // 引数も同時に書かないとコンパイラが認識できない。
+void error_token(Token *tkn, char *fmt, ...);
 bool at_eof();
-bool consume(char *op);
+Token *consume(char *op);
 Token *consume_ident();
 void expect(char *op);
 int expect_number();

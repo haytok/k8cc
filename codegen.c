@@ -7,7 +7,7 @@ char *function_name;
 // 左辺値のアセンブリを出力
 void gen_lval(Node *node) {
     if (node->kind != NODE_VAR) {
-        error("Invalid lvalue.", "error");
+        error_token(node->token, "Invalid lvalue.");
     }
     // node->var->name と node->var->offset に変数に関する必要なパラメータが入っている。
     printf("  mov rax, rbp\n");
