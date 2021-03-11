@@ -399,3 +399,7 @@ int fprintf(FILE *stream, const char *format, ...);
 ```c
 int vfprintf(FILE *stream, const char *format, va_list arg);
 ```
+
+- アドレスを表す単項 `&` とアドレスを参照する `*` を実装していく。
+- `&x` は、変数 x のアドレスを単なる整数として返す演算。
+- `*x` は、x の値をアドレスとみなして、そのアドレスから値を読み込む演算。
