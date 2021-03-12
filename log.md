@@ -403,3 +403,73 @@ int vfprintf(FILE *stream, const char *format, va_list arg);
 - アドレスを表す単項 `&` とアドレスを参照する `*` を実装していく。
 - `&x` は、変数 x のアドレスを単なる整数として返す演算。
 - `*x` は、x の値をアドレスとみなして、そのアドレスから値を読み込む演算。
+
+- `main() { x=3; y=&x; *y=5; return x; }`
+```asm
+.intel_syntax noprefix
+.global main
+main:
+  push rbp
+  mov rbp, rsp
+  sub rsp, 16
+
+  mov rax, rbp
+  sub rax, 16
+  push rax
+
+# x = 3
+  push 3
+  pop rdi
+  pop rax
+  mov [rax], rdi
+  push rdi
+  add rsp, 8
+
+# y = &x;
+  mov rax, rbp
+  sub rax, 8
+  push rax
+
+  mov rax, rbp
+  sub rax, 16
+  push rax
+  pop rdi
+  pop rax
+  mov [rax], rdi
+  push rdi
+  add rsp, 8
+
+# *y = 5
+# gen_lval の処理
+  mov rax, rbp
+  sub rax, 8
+  push rax
+
+  pop rax
+  mov rax, [rax]
+  push rax
+# case 文に書か無いと呼び出されない処理
+
+  push 5
+# case NODE_ASSIGN の残りの項
+  pop rdi
+  pop rax
+  mov [rax], rdi
+  push rdi
+  add rsp, 8
+# return 文に入る
+  mov rax, rbp
+  sub rax, 16
+  push rax
+  pop rax
+  mov rax, [rax]
+  push rax
+  pop rax
+  jmp .Lreturn.main
+.Lreturn.main:
+  mov rsp, rbp
+  pop rbp
+  ret
+```
+
+- ebp - 8 の値は、スタック上の位置を表していて、その値を [] で囲うことでそのスタックの位置に格納されている値を取得できる。*x のケースでは、x にアドレスが格納されているので [ebp - 8] の値はアドレスになる。その値が、DEREF (*) のケースでは、 gen 関数が呼び出される前にスタックのトップに積まれている。
