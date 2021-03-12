@@ -130,7 +130,7 @@ assert 8 "main() { return add2(3,4); } add2(x,y) { a=1; return a+x+y; }"
 # & と * に対応したテストケース
 assert 3 "main() { x=3; return *&x; }"
 assert 3 "main() { x=3; y=&x; z=&y; return **z; }"
-assert 5 "main() { x=3; y=5; return *(&x+8); }"
+assert 5 "main() { x=3; y=5; return *(&x+8); }" # ローカル変数がメモリ上で連続して割り当てられている前提。
 assert 3 "main() { x=3; y=5; return *(&y-8); }"
 assert 5 "main() { x=3; y=&x; *y=5; return x; }"
 assert 7 "main() { x=3; y=5; *(&x+8)=7; return y; }"
