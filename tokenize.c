@@ -148,7 +148,7 @@ Token *tokenize() {
             string += len;
             continue;
         }
-        if (strchr("+-*/()<>;={},", *string)) {
+        if (strchr("+-*/()<>;={},&", *string)) {
             current_token = new_token(TK_RESERVED, string++, current_token, 1);
             continue;
         }

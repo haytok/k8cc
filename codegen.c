@@ -1,20 +1,28 @@
 #include "k8cc.h"
 
+void gen(Node *node);
+
 int label_seq = 0;
 char *arg_register[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 char *function_name;
 
 // 左辺値のアセンブリを出力
 void gen_lval(Node *node) {
-    if (node->kind != NODE_VAR) {
-        error_token(node->token, "Invalid lvalue.");
+    switch (node->kind) {
+        case NODE_VAR: {
+            // node->var->name と node->var->offset に変数に関する必要なパラメータが入っている。
+            printf("  mov rax, rbp\n");
+            // printf("  lea rax [rbp-%d]\n", offset); // このアセンブリでも可
+            printf("  sub rax, %d\n", node->var->offset);
+            printf("  push rax\n"); // 最終的にスタックのトップには変数のアドレスが積まれている。
+            return;
+        }
+        // gen 関数の NODE_ASSIGN の gen_lval で呼び出される。
+        case NODE_DEREF: {
+            gen(node->lhs);
+            return;
+        }
     }
-    // node->var->name と node->var->offset に変数に関する必要なパラメータが入っている。
-    printf("  mov rax, rbp\n");
-    // printf("  lea rax [rbp-%d]\n", offset); // このアセンブリでも可
-    printf("  sub rax, %d\n", node->var->offset);
-    printf("  push rax\n"); // 最終的にスタックのトップには変数のアドレスが積まれている。
-    return;
 }
 
 // Node を元にアセンブリを生成する
@@ -135,6 +143,19 @@ void gen(Node *node) {
             printf("  add rsp, 8\n");
             printf("  .Lend%d:\n", seq);
             printf("  push rax\n"); // 関数で計算した結果をスタックに積む解釈で大丈夫か？
+            return;
+        }
+        // &
+        case NODE_ADDRESS: {
+            gen_lval(node->lhs); // 次は変数名のケースの処理
+            return;
+        }
+        // * (変数や () が来る)
+        case NODE_DEREF: {
+            gen(node->lhs);
+            printf("  pop rax\n");
+            printf("  mov rax, [rax]\n");
+            printf("  push rax\n");
             return;
         }
         case NODE_RETURN:

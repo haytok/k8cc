@@ -46,6 +46,8 @@ typedef enum {
     NODE_FOR, // for
     NODE_BLOCK,
     NODE_FUNCALL, // function
+    NODE_DEREF, // *
+    NODE_ADDRESS, // &
 } NodeKind;
 
 struct Node {

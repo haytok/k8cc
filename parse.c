@@ -315,11 +315,20 @@ Node *mul() {
     }
 }
 
-// unary = ("+" | "-")? unary | primary
+// unary = "+"? primary
+// "-"? primary
+// "*" unary
+// "&" unary
 Node *unary() {
     Token *tkn;
+    if (tkn = consume("*")) {
+        return new_unary(NODE_DEREF, unary(), tkn);
+    }
+    if (tkn = consume("&")) {
+        return new_unary(NODE_ADDRESS, unary(), tkn);
+    }
     if (consume("+")) {
-        return unary();
+        return primary();
     }
     if (tkn = consume("-")) {
         return new_node_binary(NODE_SUB, new_node_num(0, tkn), unary(), tkn);
