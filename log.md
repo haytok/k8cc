@@ -473,3 +473,26 @@ main:
 ```
 
 - ebp - 8 の値は、スタック上の位置を表していて、その値を [] で囲うことでそのスタックの位置に格納されている値を取得できる。*x のケースでは、x にアドレスが格納されているので [ebp - 8] の値はアドレスになる。その値が、DEREF (*) のケースでは、 gen 関数が呼び出される前にスタックのトップに積まれている。
+
+- Annotate AST nodes with types の commit について
+  - 資料のステップ 18 の図にあるように一番末端の型は int 型しか現状は取り扱っていない。
+  - 悔しいけど、完全には理解できなかった。
+  - 特に type.c の以下の実装が完全に理解できなかった。
+
+```c
+case ND_ADD:
+    if (node->rhs->ty->kind == TY_PTR) {
+    Node *tmp = node->lhs;
+    node->lhs = node->rhs;
+    node->rhs = tmp;
+  }
+  if (node->rhs->ty->kind == TY_PTR)
+    error_tok(node->tok, "invalid pointer arithmetic operands");
+  node->ty = node->lhs->ty;
+  return;
+case ND_SUB:
+  if (node->rhs->ty->kind == TY_PTR)
+    error_tok(node->tok, "invalid pointer arithmetic operands");
+  node->ty = node->lhs->ty;
+  return;
+```
