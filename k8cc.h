@@ -11,6 +11,7 @@ typedef struct Node Node;
 typedef struct Var Var;
 typedef struct VarList VarList;
 typedef struct Function Function;
+typedef struct Type Type;
 
 typedef enum {
   TK_RESERVED,
@@ -68,6 +69,7 @@ struct Node {
     char *function_name;
     Node *args; // args of function
     Token *token;
+    Type *type;
 };
 
 struct Var {
@@ -88,6 +90,13 @@ struct Function {
     VarList *locals;
     int stack_size;
     VarList *params;
+};
+
+typedef enum { TYPE_INT, TYPE_PTR } TypeKind;
+
+struct Type {
+    TypeKind kind;
+    Type *base;
 };
 
 // 文法に関する宣言
@@ -111,3 +120,6 @@ void codegen(Function *prog);
 // global 変数
 extern char *user_input;
 extern Token *token;
+
+// type を追加
+void add_type(Function *prog);

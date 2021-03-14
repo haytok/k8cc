@@ -25,9 +25,10 @@ main:
   mov rax, rbp
   sub rax, 8
   push rax
-  push 8
+  push 1
   pop rdi
   pop rax
+  imul rdi, 8
   sub rax, rdi
   push rax
   push 7

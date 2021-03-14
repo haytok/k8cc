@@ -175,9 +175,15 @@ void gen(Node *node) {
 
     switch (node->kind) {
         case NODE_ADD:
+            if (node->type->kind == TYPE_PTR) {
+                printf("  imul rdi, 8\n");
+            }
             printf("  add rax, rdi\n");
             break;
         case NODE_SUB:
+            if (node->type->kind == TYPE_PTR) {
+                printf("  imul rdi, 8\n");
+            }
             printf("  sub rax, rdi\n");
             break;
         case NODE_MUL:
