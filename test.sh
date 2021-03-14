@@ -29,10 +29,10 @@ assert() {
 }
 
 # テストケース
-assert 5 "int main() { x=3; y=5; return *(&x+1); }"
-assert 3 "int main() { x=3; y=5; return *(&y-1); }"
-assert 7 "int main() { x=3; y=5; *(&x+1)=7; return y; }"
-assert 7 "int main() { x=3; y=5; *(&y-1)=7; return x; }"
+assert 5 "int main() { int x=3; int y=5; return *(&x+1); }"
+assert 3 "int main() { int x=3; int y=5; return *(&y-1); }"
+assert 7 "int main() { int x=3; int y=5; *(&x+1)=7; return y; }"
+assert 7 "int main() { int x=3; int y=5; *(&y-1)=7; return x; }"
 
 assert 0 "int main() { return 0; }"
 assert 42 "int main() { return 42; }"
@@ -123,24 +123,24 @@ assert 13 "int main() { return add(3 + 5, 5); }"
 assert 13 "int main() { return add(add(3, 5), 5); }"
 
 # 関数の定義に対応したテストケース
-assert 32 "int main() { return ret32(); } ret32() { return 32; }"
+assert 32 "int main() { return ret32(); } int ret32() { return 32; }"
 
 # 引数が最大 6 個の関数に対応したテストケース
-assert 7 "int main() { return add2(3,4); } add2(int x, int y) { return x+y; }"
-assert 6 "int main() { return aaa(3); } aaa(int x) { return x*2; }"
-assert 12 "int main() { return mul2(3,4); } mul2(int x, int y) { return x*y; }"
-assert 1 "int main() { return sub2(4,3); } sub2(int x, int y) { return x-y; }"
-assert 55 "int main() { return fib(9); } fib(int x) { if (x<=1) return 1; return fib(x-1) + fib(x-2); }"
-assert 8 "int main() { return add2(add2(4,3), sub2(4,3)); } add2(int x, int y) { return x+y; } sub2(int x, int y) { return x-y; }"
-assert 8 "int main() { return add2(3,4); } add2(int x, int y) { int a=1; return a+x+y; }"
+assert 7 "int main() { return add2(3,4); } int add2(int x, int y) { return x+y; }"
+assert 6 "int main() { return aaa(3); } int aaa(int x) { return x*2; }"
+assert 12 "int main() { return mul2(3,4); } int mul2(int x, int y) { return x*y; }"
+assert 1 "int main() { return sub2(4,3); } int sub2(int x, int y) { return x-y; }"
+assert 55 "int main() { return fib(9); } int fib(int x) { if (x<=1) return 1; return fib(x-1) + fib(x-2); }"
+assert 8 "int main() { return add2(add2(4,3), sub2(4,3)); } int add2(int x, int y) { return x+y; } int sub2(int x, int y) { return x-y; }"
+assert 8 "int main() { return add2(3,4); } int add2(int x, int y) { int a=1; return a+x+y; }"
 
 # & と * に対応したテストケース
 assert 3 "int main() { int x=3; return *&x; }"
-assert 3 "int main() { int x=3; int y=&x; int z=&y; return **z; }"
+assert 3 "int main() { int x=3; int y=&x; int **z=&y; return **z; }"
 # Annotate AST nodes with types の commit で削除
 # assert 5 "main() { x=3; y=5; return *(&x+8); }" # ローカル変数がメモリ上で連続して割り当てられている前提。
 # assert 3 "main() { x=3; y=5; return *(&y-8); }"
-assert 5 "int main() { int x=3; int y=&x; *y=5; return x; }"
+assert 5 "int main() { int x=3; int *y=&x; *y=5; return x; }"
 # assert 7 "main() { x=3; y=5; *(&x+8)=7; return y; }"
 # assert 7 "main() { x=3; y=5; *(&y-8)=7; return x; }"
 
@@ -151,7 +151,7 @@ assert 7 "int main() { int x=3; int y=5; *(&y-1)=7; return x; }"
 
 # int 型に対応したテストケース
 assert 3 "int main() { int x=3; return *&x; }"
-assert 3 "int main() { int x=3; int *y=&x; int **z=&y; return **z; }"
+assert 3 "int main() { int x=3; int y=&x; int **z=&y; return **z; }"
 assert 5 "int main() { int x=3; int y=5; return *(&x+1); }"
 assert 5 "int main() { int x=3; int y=5; return *(1+&x); }"
 assert 3 "int main() { int x=3; int y=5; return *(&y-1); }"
