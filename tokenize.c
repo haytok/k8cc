@@ -46,12 +46,19 @@ bool is_alnum(char c) {
 bool at_eof() { return token->kind == TK_EOF; }
 
 // 演算子に関する処理を実装
-Token *consume(char *op) {
+Token *peek(char *op) {
     if (
         token->kind != TK_RESERVED ||
         memcmp(token->string, op, token->len) ||
         strlen(op) != token->len
     ) {
+        return NULL;
+    }
+    return token;
+}
+
+Token *consume(char *op) {
+    if (!peek(op)) {
         return NULL;
     }
     Token *tkn = token;
@@ -70,11 +77,7 @@ Token *consume_ident() {
 }
 
 void expect(char *op) {
-    if (
-        token->kind != TK_RESERVED ||
-        memcmp(token->string, op, token->len) ||
-        strlen(op) != token->len
-    ) {
+    if (!peek(op)) {
         error_token(token, "Invalid token in expect function due to '%c'.\n", op);
     }
     token = token->next;
@@ -110,7 +113,7 @@ Token *new_token(TokenKind kind, char *string, Token *old_token, int len) {
 
 // キーワードを返す設計にする
 char *starts_with_reserved(char *string) {
-    static char *keyword[] = {"return", "if", "else", "while", "for"};
+    static char *keyword[] = {"return", "if", "else", "while", "for", "int"};
     int keyword_size = sizeof(keyword) / sizeof(*keyword);
     for (int i = 0; i < keyword_size; i++) {
         int len = strlen(keyword[i]);

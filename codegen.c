@@ -28,6 +28,8 @@ void gen_lval(Node *node) {
 // Node を元にアセンブリを生成する
 void gen(Node *node) {
     switch (node->kind) {
+        case NODE_NULL:
+            return;
         case NODE_NUM:
             printf("  push %d\n", node->value);
             return;

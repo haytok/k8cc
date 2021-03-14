@@ -4,6 +4,7 @@ VarList *locals;
 
 // 関数の循環参照のためのプロトタイプ宣言
 Function *function();
+Node *declaration();
 Node *stmt();
 Node *expr();
 Node *assign();
@@ -60,15 +61,27 @@ Var *find_var(Token *tkn) {
     return NULL;
 }
 
-Var *push_var(char *name) {
+Var *push_var(char *name, Type *ty) {
     Var *var = calloc(1, sizeof(Var));
     var->name = name;
+    var->ty = ty;
 
     VarList *vl = calloc(1, sizeof(VarList));
     vl->var = var;
     vl->next = locals;
     locals = vl;
     return var;
+}
+
+// Type に関する処理
+Type *basetype() {
+    // 現時点では int 型のみを実装する
+    expect("int");
+    Type *ty = int_type();
+    while(consume("*")) {
+        ty = pointer_to(ty);
+    }
+    return ty;
 }
 
 // function_args = "(" (assign (, assign)*)? ")"
@@ -91,6 +104,13 @@ Node *function_args() {
     return head;
 }
 
+VarList *read_function_param() {
+    VarList *vl = calloc(1, sizeof(VarList));
+    Type *ty = basetype();
+    vl->var = push_var(expect_ident(), ty);
+    return vl;
+}
+
 // params = ident ("," ident)*
 VarList *read_function_params() {
     if (consume(")")) {
@@ -100,14 +120,12 @@ VarList *read_function_params() {
     // 初期化
     // locals に追加しつつ、独自に current_var_list に Var 型のオブジェクトを繋げていっている。
     // なので、f->params を for 文で回しても local 変数は現れず、引数のみ現れる。
-    VarList *head = calloc(1, sizeof(VarList));
-    head->var = push_var(expect_ident());
+    VarList *head = read_function_param();
     VarList *current_var_list = head;
 
     while (!consume(")")) {
         expect(",");
-        current_var_list->next = calloc(1, sizeof(VarList));
-        current_var_list->next->var = push_var(expect_ident());
+        current_var_list->next = read_function_param();
         current_var_list = current_var_list->next;
     }
 
@@ -128,12 +146,14 @@ Function *program() {
     return head.next;
 }
 
-// function = ident "(" params? ")" "{" stmt* "}"
-// params = ident ("," ident)*
+// function = basetype ident "(" params? ")" "{" stmt* "}"
+// params = param ("," param)*
+// param = basetype ident
 Function *function() {
     locals = NULL;
 
     Function *function = calloc(1, sizeof(Function));
+    basetype();
     function->function_name = expect_ident();
     expect("(");
     // params の処理
@@ -156,11 +176,31 @@ Function *function() {
     return function;
 }
 
+// 変数の宣言 ex) int a; int b = 10; などが該当
+// declaration = basetype ident ("=" expr) ";"
+Node *declaration() {
+    Token *tkn = token;
+    Type *ty = basetype();
+    Var *var = push_var(expect_ident(), ty); // locals には未定義変数が積まれている
+
+    if (consume(";")) {
+        return new_node(NODE_NULL, tkn);
+    }
+
+    Node *lhs = new_var(var, tkn);
+    expect("=");
+    Node *rhs = expr();
+    Node *node = new_node_binary(NODE_ASSIGN, lhs, rhs, tkn);
+    expect(";");
+    return new_unary(NODE_EXPR_STMT, node, tkn); // stmt 関数内で呼び出される
+}
+
 // stmt = expr ";"
 // | "{" stmt* "}"
 // | "if" "(" expr ")" stmt ("else" stmt)?
 // | "while" "(" expr ")" stmt
 // | "for" "(" expr? ";" expr? ";" expr? ")" stmt
+// | declaration // 今回の実装では int のみを考慮
 // | "return" expr ";"
 Node *stmt() {
     Token *tkn;
@@ -226,6 +266,10 @@ Node *stmt() {
             node->then = stmt();
             return node;
         }
+    }
+
+    if (tkn = peek("int")) {
+        return declaration();
     }
 
     // Node *node = expr();
@@ -360,8 +404,8 @@ Node *primary() {
         // token が存在にあるか確認する処理
         Var *var = find_var(tkn);
         if (!var) {
-            // locals に var を積む処理
-            var = push_var(strndup(tkn->string, tkn->len));
+            // locals に変数名が積まれていない時 (変数が宣言されていない時) は、エラーを吐く
+            error_token(tkn, "undefined variable.");
         }
         return new_var(var, tkn);
     }

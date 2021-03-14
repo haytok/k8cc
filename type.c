@@ -57,10 +57,13 @@ void visit(Node *node) {
         case NODE_NE:
         case NODE_LT:
         case NODE_LE:
-        case NODE_VAR:
         case NODE_FUNCALL:
         case NODE_NUM: {
             node->type = int_type();
+            return;
+        }
+        case NODE_VAR: {
+            node->type = node->var->ty;
             return;
         }
         case NODE_ADD: {
@@ -89,11 +92,10 @@ void visit(Node *node) {
         // *
         case NODE_DEREF: {
             // イマイチ理解できていない。
-            if (node->lhs->type->kind == TYPE_PTR) {
-                node->type = node->lhs->type->base;
-            } else {
-                node->type = int_type();
+            if (node->lhs->type->kind != TYPE_PTR) {
+                error_token(node->token, "invalid pointer dereference");
             }
+            node->type = node->lhs->type->base;
             return;
         }
         // &

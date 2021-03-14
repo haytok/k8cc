@@ -49,6 +49,7 @@ typedef enum {
     NODE_FUNCALL, // function
     NODE_DEREF, // *
     NODE_ADDRESS, // &
+    NODE_NULL, // 変数宣言で使用
 } NodeKind;
 
 struct Node {
@@ -75,6 +76,7 @@ struct Node {
 struct Var {
     // Var *next;
     char *name;
+    Type *ty;
     int offset;
 };
 
@@ -113,6 +115,7 @@ int expect_number();
 char *expect_ident();
 Token *tokenize();
 char *strndup(char *string, int len);
+Token *peek(char *op);
 
 // アセンブリを作成する関数
 void codegen(Function *prog);
@@ -122,4 +125,6 @@ extern char *user_input;
 extern Token *token;
 
 // type を追加
+Type *int_type();
+Type *pointer_to(Type *base);
 void add_type(Function *prog);
