@@ -15,6 +15,22 @@ Type *pointer_to(Type *base) {
     return ty;
 }
 
+int size_of(Type *ty) {
+    if (ty->kind == TYPE_INT || ty->kind == TYPE_PTR) {
+        return 8;
+    }
+    return size_of(ty->base) * ty->array_size;
+}
+
+// Array
+Type *array_of(Type *base, int array_size) {
+    Type *ty = calloc(1, sizeof(Type));
+    ty->kind = TYPE_ARRAY;
+    ty->base = base;
+    ty->array_size = array_size;
+    return ty;
+}
+
 void visit(Node *node) {
     if (!node) {
         return;
@@ -67,19 +83,19 @@ void visit(Node *node) {
             return;
         }
         case NODE_ADD: {
-            if (node->rhs->type->kind == TYPE_PTR) {
+            if (node->rhs->type->base) {
                 Node *tmp = node->rhs;
                 node->rhs = node->lhs;
                 node->lhs = tmp;
             }
-            if (node->rhs->type->kind == TYPE_PTR) {
+            if (node->rhs->type->base) {
                 error_token(node->token, "invalid pointer arithmetic operands");
             }
             node->type = node->lhs->type;
             return;
         }
         case NODE_SUB: {
-            if (node->rhs->type->kind == TYPE_PTR) {
+            if (node->rhs->type->base) {
                 error_token(node->token, "invalid pointer arithmetic operands");
             }
             node->type = node->lhs->type;
@@ -92,7 +108,7 @@ void visit(Node *node) {
         // *
         case NODE_DEREF: {
             // イマイチ理解できていない。
-            if (node->lhs->type->kind != TYPE_PTR) {
+            if (!node->lhs->type->base) {
                 error_token(node->token, "invalid pointer dereference");
             }
             node->type = node->lhs->type->base;
@@ -100,7 +116,11 @@ void visit(Node *node) {
         }
         // &
         case NODE_ADDRESS: {
-            node->type = pointer_to(node->lhs->type); // イマイチ理解できていない。
+            if (node->lhs->type->kind == TYPE_ARRAY) {
+                node->type = pointer_to(node->lhs->type->base);
+            } else {
+                node->type = pointer_to(node->lhs->type); // イマイチ理解できていない。
+            }
             return;
         }
 

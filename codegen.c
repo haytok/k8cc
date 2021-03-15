@@ -6,8 +6,7 @@ int label_seq = 0;
 char *arg_register[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 char *function_name;
 
-// 左辺値のアセンブリを出力
-void gen_lval(Node *node) {
+void gen_addr(Node *node) {
     switch (node->kind) {
         case NODE_VAR: {
             // node->var->name と node->var->offset に変数に関する必要なパラメータが入っている。
@@ -23,6 +22,27 @@ void gen_lval(Node *node) {
             return;
         }
     }
+}
+
+// 左辺値のアセンブリを出力
+void gen_lval(Node *node) {
+    if (node->type->kind == TYPE_ARRAY) {
+        error_token(node->token, "not an lvalue");
+    }
+    gen_addr(node);
+}
+
+void load() {
+    printf("  pop rax\n");
+    printf("  mov rax, [rax]\n");
+    printf("  push rax\n");
+}
+
+void store() {
+    printf("  pop rdi\n");
+    printf("  pop rax\n");
+    printf("  mov [rax], rdi\n");
+    printf("  push rdi\n");
 }
 
 // Node を元にアセンブリを生成する
@@ -43,18 +63,15 @@ void gen(Node *node) {
             gen_lval(node->lhs);
             gen(node->rhs);
 
-            printf("  pop rdi\n");
-            printf("  pop rax\n");
-            printf("  mov [rax], rdi\n");
-            printf("  push rdi\n");
+            store();
             return;
         // a + z の処理の時に呼ばれる。
         case NODE_VAR:
-            gen_lval(node);
-
-            printf("  pop rax\n");
-            printf("  mov rax, [rax]\n");
-            printf("  push rax\n");
+            gen_addr(node);
+            // 現時点では Array に代入は実装しない。
+            if (node->type->kind != TYPE_ARRAY) {
+                load();
+            }
             return;
         case NODE_IF: {
             int seq = label_seq++;
@@ -149,15 +166,16 @@ void gen(Node *node) {
         }
         // &
         case NODE_ADDRESS: {
-            gen_lval(node->lhs); // 次は変数名のケースの処理
+            gen_addr(node->lhs); // 次は変数名のケースの処理
             return;
         }
         // * (変数や () が来る)
         case NODE_DEREF: {
             gen(node->lhs);
-            printf("  pop rax\n");
-            printf("  mov rax, [rax]\n");
-            printf("  push rax\n");
+            // 現時点では Array に代入は実装しない。
+            if (node->type->kind != TYPE_ARRAY) {
+                load();
+            }
             return;
         }
         case NODE_RETURN:
@@ -177,14 +195,14 @@ void gen(Node *node) {
 
     switch (node->kind) {
         case NODE_ADD:
-            if (node->type->kind == TYPE_PTR) {
-                printf("  imul rdi, 8\n");
+            if (node->type->base) {
+                printf("  imul rdi, %d\n", size_of(node->type->base));
             }
             printf("  add rax, rdi\n");
             break;
         case NODE_SUB:
-            if (node->type->kind == TYPE_PTR) {
-                printf("  imul rdi, 8\n");
+            if (node->type->base) {
+                printf("  imul rdi, %d\n", size_of(node->type->base));
             }
             printf("  sub rax, rdi\n");
             break;

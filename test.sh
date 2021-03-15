@@ -136,7 +136,7 @@ assert 8 "int main() { return add2(3,4); } int add2(int x, int y) { int a=1; ret
 
 # & と * に対応したテストケース
 assert 3 "int main() { int x=3; return *&x; }"
-assert 3 "int main() { int x=3; int y=&x; int **z=&y; return **z; }"
+assert 3 "int main() { int x=3; int *y=&x; int **z=&y; return **z; }"
 # Annotate AST nodes with types の commit で削除
 # assert 5 "main() { x=3; y=5; return *(&x+8); }" # ローカル変数がメモリ上で連続して割り当てられている前提。
 # assert 3 "main() { x=3; y=5; return *(&y-8); }"
@@ -151,7 +151,7 @@ assert 7 "int main() { int x=3; int y=5; *(&y-1)=7; return x; }"
 
 # int 型に対応したテストケース
 assert 3 "int main() { int x=3; return *&x; }"
-assert 3 "int main() { int x=3; int y=&x; int **z=&y; return **z; }"
+assert 3 "int main() { int x=3; int *y=&x; int **z=&y; return **z; }"
 assert 5 "int main() { int x=3; int y=5; return *(&x+1); }"
 assert 5 "int main() { int x=3; int y=5; return *(1+&x); }"
 assert 3 "int main() { int x=3; int y=5; return *(&y-1); }"

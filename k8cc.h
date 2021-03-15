@@ -5,6 +5,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <stdarg.h>
+#include <assert.h>
 
 typedef struct Token Token;
 typedef struct Node Node;
@@ -94,11 +95,16 @@ struct Function {
     VarList *params;
 };
 
-typedef enum { TYPE_INT, TYPE_PTR } TypeKind;
+typedef enum {
+    TYPE_INT,
+    TYPE_PTR,
+    TYPE_ARRAY,
+} TypeKind;
 
 struct Type {
     TypeKind kind;
     Type *base;
+    size_t array_size;
 };
 
 // 文法に関する宣言
@@ -127,4 +133,6 @@ extern Token *token;
 // type を追加
 Type *int_type();
 Type *pointer_to(Type *base);
+Type *array_of(Type *base, int array_size);
+int size_of(Type *ty);
 void add_type(Function *prog);

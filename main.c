@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
     for (Function *f = prog; f; f = f->next) {
         int offset = 0;
         for (VarList *v = f->locals; v; v = v->next) {
-            offset += 8;
+            offset += size_of(v->var->ty);
             v->var->offset = offset;
         }
         f->stack_size = offset;

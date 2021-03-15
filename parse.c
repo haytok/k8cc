@@ -104,10 +104,25 @@ Node *function_args() {
     return head;
 }
 
+// ident ("[" num "]")* のケースを想定
+// ex) int x[2]; をコンパイルできるように実装する
+Type *read_type_suffix(Type *base) {
+    if (!consume("[")) {
+        return base;
+    }
+    int array_size = expect_number();
+    expect("]");
+    Type *ty = read_type_suffix(base);
+    return array_of(ty, array_size);
+}
+
+// basetype ident ("[" num "]")* のケースをコンパイルできるように修正
 VarList *read_function_param() {
     VarList *vl = calloc(1, sizeof(VarList));
-    Type *ty = basetype();
-    vl->var = push_var(expect_ident(), ty);
+    Type *base = basetype();
+    char *ident = expect_ident();
+    Type *ty = read_type_suffix(base);
+    vl->var = push_var(ident, ty);
     return vl;
 }
 
@@ -177,11 +192,14 @@ Function *function() {
 }
 
 // 変数の宣言 ex) int a; int b = 10; などが該当
-// declaration = basetype ident ("=" expr) ";"
+// declaration = basetype ident ("[" num "]")* ("=" expr) ";"
 Node *declaration() {
     Token *tkn = token;
-    Type *ty = basetype();
-    Var *var = push_var(expect_ident(), ty); // locals には未定義変数が積まれている
+    Type *base = basetype();
+    char *ident = expect_ident();
+    Type *ty = read_type_suffix(base);
+    // Array かどうかの処理を呼び出したい
+    Var *var = push_var(ident, ty);  // locals には未定義変数が積まれている
 
     if (consume(";")) {
         return new_node(NODE_NULL, tkn);
