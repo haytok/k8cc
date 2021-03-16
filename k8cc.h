@@ -51,6 +51,7 @@ typedef enum {
     NODE_DEREF, // *
     NODE_ADDRESS, // &
     NODE_NULL, // 変数宣言で使用
+    NODE_SIZEOF,
 } NodeKind;
 
 struct Node {

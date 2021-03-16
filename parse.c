@@ -414,15 +414,21 @@ Node *postfix() {
 // primary = num
 // | ident function_args?
 // | "(" expr ")"
+// | "sizeof" unary
 Node *primary() {
+    Token *tkn;
     if (consume("(")) {
         Node *node = expr();
         expect(")");
         return node; // この時点で token は ) の次の token を指している
     }
 
+    if (tkn = consume("sizeof")) {
+        return new_unary(NODE_SIZEOF, unary(), tkn);
+    }
+
     // 変数に関する処理
-    Token *tkn = consume_ident();
+    tkn = consume_ident();
     if (tkn) {
         // トークンが関数で使われているかを検証
         if (consume("(")) {

@@ -123,7 +123,13 @@ void visit(Node *node) {
             }
             return;
         }
-
+        case NODE_SIZEOF: {
+            node->kind = NODE_NUM;
+            node->type = int_type();
+            node->value = size_of(node->lhs->type);
+            node->lhs = NULL;
+            return;
+        }
     }
 }
 
