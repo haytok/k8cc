@@ -13,6 +13,7 @@ Node *relational();
 Node *add();
 Node *mul();
 Node *unary();
+Node *postfix();
 Node *primary();
 
 // 構文解析
@@ -377,10 +378,8 @@ Node *mul() {
     }
 }
 
-// unary = "+"? primary
-// "-"? primary
-// "*" unary
-// "&" unary
+// unary = ("*" | "&" | "+" | "-")? unary
+// | postfix // x[0] = 1; のようなケースを想定して文法を追加
 Node *unary() {
     Token *tkn;
     if (tkn = consume("*")) {
@@ -395,7 +394,20 @@ Node *unary() {
     if (tkn = consume("-")) {
         return new_node_binary(NODE_SUB, new_node_num(0, tkn), unary(), tkn);
     }
-    return primary();
+    return postfix();
+}
+
+// postfix = primary ( "[" expr "]" )*
+Node *postfix() {
+    Node *node = primary();
+    Token *tkn;
+    while(tkn = consume("[")) {
+        // x[y] is short for *(x+y).
+        Node *exp = new_node_binary(NODE_ADD, node, expr(), tkn);
+        expect("]");
+        node = new_unary(NODE_DEREF, exp, tkn);
+    }
+    return node;
 }
 
 // function_args = "(" (assign (, assign)*)? ")"

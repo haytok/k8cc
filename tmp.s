@@ -42,6 +42,12 @@ main:
   imul rdi, 24
   add rax, rdi
   push rax
+  push 0
+  pop rdi
+  pop rax
+  imul rdi, 8
+  add rax, rdi
+  push rax
   pop rax
   mov rax, [rax]
   push rax
