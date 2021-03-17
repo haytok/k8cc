@@ -11,10 +11,10 @@ int main(int argc, char *argv[]) {
 
     user_input = argv[1];
     token = tokenize();
-    Function *prog = program();
+    Program *prog = program();
     add_type(prog);
 
-    for (Function *f = prog; f; f = f->next) {
+    for (Function *f = prog->functions; f; f = f->next) {
         int offset = 0;
         for (VarList *v = f->locals; v; v = v->next) {
             offset += size_of(v->var->ty);

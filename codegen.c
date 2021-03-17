@@ -9,11 +9,16 @@ char *function_name;
 void gen_addr(Node *node) {
     switch (node->kind) {
         case NODE_VAR: {
-            // node->var->name と node->var->offset に変数に関する必要なパラメータが入っている。
-            printf("  mov rax, rbp\n");
-            // printf("  lea rax [rbp-%d]\n", offset); // このアセンブリでも可
-            printf("  sub rax, %d\n", node->var->offset);
-            printf("  push rax\n"); // 最終的にスタックのトップには変数のアドレスが積まれている。
+            Var *var = node->var;
+            if (var->is_local) {
+                // node->var->name と node->var->offset に変数に関する必要なパラメータが入っている。
+                printf("  mov rax, rbp\n");
+                // printf("  lea rax [rbp-%d]\n", offset); // このアセンブリでも可
+                printf("  sub rax, %d\n", var->offset);
+                printf("  push rax\n"); // 最終的にスタックのトップには変数のアドレスが積まれている。
+            } else {
+                printf("  push offset %s\n", var->name);
+            }
             return;
         }
         // gen 関数の NODE_ASSIGN の gen_lval で呼び出される。
@@ -241,10 +246,23 @@ void gen(Node *node) {
     printf("  push rax\n");
 }
 
-void codegen(Function *prog) {
-    printf(".intel_syntax noprefix\n");
+// global 変数のアセンブリを吐き出す関数
+// ex)
+// x:
+//   .zero 4
+void emit_data(Program *prog) {
+    printf(".data\n");
+    for (VarList *vl = prog->globals; vl; vl = vl->next) {
+        Var *var = vl->var;
+        printf("%s:\n", var->name);
+        printf("  .zero %d\n", size_of(var->ty));
+    }
+}
 
-    for (Function *f = prog; f; f = f->next) {
+// 関数のアセンブリを吐き出す関数
+void emit_text(Program *prog) {
+    printf(".text\n");
+    for (Function *f = prog->functions; f; f = f->next) {
         function_name = f->function_name;
         printf(".global %s\n", function_name);
         printf("%s:\n", function_name);
@@ -275,4 +293,10 @@ void codegen(Function *prog) {
 
         printf("  ret\n");
     }
+}
+
+void codegen(Program *prog) {
+    printf(".intel_syntax noprefix\n");
+    emit_data(prog);
+    emit_text(prog);
 }

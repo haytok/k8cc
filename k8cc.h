@@ -13,6 +13,7 @@ typedef struct Var Var;
 typedef struct VarList VarList;
 typedef struct Function Function;
 typedef struct Type Type;
+typedef struct Program Program;
 
 typedef enum {
   TK_RESERVED,
@@ -79,6 +80,7 @@ struct Var {
     // Var *next;
     char *name;
     Type *ty;
+    bool is_local;
     int offset;
 };
 
@@ -108,8 +110,13 @@ struct Type {
     size_t array_size;
 };
 
+struct Program {
+    Function *functions;
+    VarList *globals;
+};
+
 // 文法に関する宣言
-Function *program();
+Program *program();
 
 // token を操作する関数
 void error_at(char *string, char *fmt, ...); // 引数も同時に書かないとコンパイラが認識できない。
@@ -125,7 +132,7 @@ char *strndup(char *string, int len);
 Token *peek(char *op);
 
 // アセンブリを作成する関数
-void codegen(Function *prog);
+void codegen(Program *prog);
 
 // global 変数
 extern char *user_input;
@@ -136,4 +143,4 @@ Type *int_type();
 Type *pointer_to(Type *base);
 Type *array_of(Type *base, int array_size);
 int size_of(Type *ty);
-void add_type(Function *prog);
+void add_type(Program *prog);

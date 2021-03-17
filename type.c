@@ -133,8 +133,8 @@ void visit(Node *node) {
     }
 }
 
-void add_type(Function *prog) {
-    for (Function *f = prog; f; f = f->next) {
+void add_type(Program *prog) {
+    for (Function *f = prog->functions; f; f = f->next) {
         for (Node *n = f->node; n; n = n->next) {
             visit(n);
         }

@@ -1,8 +1,11 @@
 #include "k8cc.h"
 
 VarList *locals;
+VarList *globals;
 
 // 関数の循環参照のためのプロトタイプ宣言
+Type *basetype();
+Type *read_type_suffix(Type *base);
 Function *function();
 Node *declaration();
 Node *stmt();
@@ -59,19 +62,45 @@ Var *find_var(Token *tkn) {
             return var;
         }
     }
+    // local 変数を見に行っていから global 変数を読み行くのでこの順番になる
+    for (VarList *g = globals; g; g=g->next) {
+        Var *var = g->var;
+        if (
+            strlen(var->name) == tkn->len &&
+            !memcmp(tkn->string, var->name, tkn->len)
+        ) {
+            return var;
+        }
+    }
     return NULL;
 }
 
-Var *push_var(char *name, Type *ty) {
+Var *push_var(char *name, Type *ty, bool is_local) {
     Var *var = calloc(1, sizeof(Var));
     var->name = name;
     var->ty = ty;
+    var->is_local = is_local;
 
     VarList *vl = calloc(1, sizeof(VarList));
     vl->var = var;
-    vl->next = locals;
-    locals = vl;
+
+    if (is_local) {
+        vl->next = locals;
+        locals = vl;
+    } else {
+        vl->next = globals;
+        globals = vl;
+    }
     return var;
+}
+
+// global-var = basetype ident ("[" num "]")* ";"
+void global_var() {
+    Type *base = basetype();
+    char *ident = expect_ident();
+    Type *ty = read_type_suffix(base);
+    push_var(ident, ty, false);
+    expect(";");
 }
 
 // Type に関する処理
@@ -123,7 +152,7 @@ VarList *read_function_param() {
     Type *base = basetype();
     char *ident = expect_ident();
     Type *ty = read_type_suffix(base);
-    vl->var = push_var(ident, ty);
+    vl->var = push_var(ident, ty, true);
     return vl;
 }
 
@@ -148,18 +177,37 @@ VarList *read_function_params() {
     return head;
 }
 
-// program = function*
-Function *program() {
+// int x; int main() {} を区別する
+bool is_function() {
+    // 後々の処理で動かした token を元に戻すための変数
+    Token *tkn = token;
+    basetype();
+    bool isFunc = consume_ident() && consume("(");
+    token = tkn;
+    return isFunc;
+}
+
+// program = (global-var | function)*
+Program *program() {
     Function head;
     head.next = NULL;
     Function *current_function = &head;
+    globals = NULL;
 
     while (!at_eof()) {
-        current_function->next = function();
-        current_function = current_function->next;
+        if (is_function()) {
+            current_function->next = function();
+            current_function = current_function->next;
+        } else {
+            global_var();
+        }
     }
 
-    return head.next;
+    Program *prog = calloc(1, sizeof(Program));
+    prog->functions = head.next;
+    prog->globals = globals;
+
+    return prog;
 }
 
 // function = basetype ident "(" params? ")" "{" stmt* "}"
@@ -200,7 +248,7 @@ Node *declaration() {
     char *ident = expect_ident();
     Type *ty = read_type_suffix(base);
     // Array かどうかの処理を呼び出したい
-    Var *var = push_var(ident, ty);  // locals には未定義変数が積まれている
+    Var *var = push_var(ident, ty, true);  // locals には未定義変数が積まれている
 
     if (consume(";")) {
         return new_node(NODE_NULL, tkn);
