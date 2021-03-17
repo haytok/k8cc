@@ -496,3 +496,18 @@ case ND_SUB:
   node->ty = node->lhs->ty;
   return;
 ```
+
+- global 変数と local 変数について
+- 今まではすべての変数がスタックにあったはずなので、変数の読み書きはRBP（ベースポインタ）からの相対で行なっていました。グローバル変数はスタック上にある値ではなく、メモリ上の固定の位置にある値なので、そのアドレスに直接アクセスするようにコンパイルします。
+- データセグメントとテキストセグメントの話は資料の実行ファイルの構造の箇所で説明があった。グローバル変数に関数の結果を代入できない話がリンカとコンパイラの文脈で説明されていた、
+- `test.sh` の gcc のオプションで `-static` を付けていないと、以下のエラーが出た。
+
+```bash
+/usr/bin/ld: /tmp/ccg7ng8r.o: relocation R_X86_64_32S against `.data' can not be used when making a PIE object。 -fPIC を付けて再コンパイルしてください。
+/usr/bin/ld: 最終リンクに失敗しました: 出力に対応するセクションがありません
+collect2: error: ld returned 1 exit status
+./test.sh: 行 20: ./tmp: そのようなファイルやディレクトリはありません
+int x; int main() { return x; } => 0, but got 127
+Makefile:11: recipe for target 'test' failed
+make: *** [test] Error 1
+```
