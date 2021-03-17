@@ -57,6 +57,8 @@ Token *peek(char *op) {
     return token;
 }
 
+// 引数の文字列が予約語であれば token を進める
+// そうでなかったら NULL を返す
 Token *consume(char *op) {
     if (!peek(op)) {
         return NULL;
@@ -76,6 +78,8 @@ Token *consume_ident() {
     return tok;
 }
 
+// 引数の文字列が予約語であれば token を進める
+// そうでなかったらエラーを吐く
 void expect(char *op) {
     if (!peek(op)) {
         error_token(token, "Invalid token in expect function due to '%c'.\n", op);
@@ -120,6 +124,7 @@ char *starts_with_reserved(char *string) {
         "while",
         "for",
         "int",
+        "char",
         "sizeof"
     };
     int keyword_size = sizeof(keyword) / sizeof(*keyword);

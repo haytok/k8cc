@@ -1,31 +1,44 @@
 #include "k8cc.h"
 
-Type *int_type() {
+Type *new_type(TypeKind kind) {
     Type *ty = calloc(1, sizeof(Type));
-    ty->kind = TYPE_INT;
+    ty->kind = kind;
     return ty;
+}
+
+Type *int_type() {
+    return new_type(TYPE_INT);
+}
+
+Type *char_type() {
+    return new_type(TYPE_CHAR);
 }
 
 // 新しい Type オブジェクトに次のノードの Type オブジェクトを
 //追加したオブジェクトを返す関数
 Type *pointer_to(Type *base) {
-    Type *ty = calloc(1, sizeof(Type));
-    ty->kind = TYPE_PTR;
+    Type *ty = new_type(TYPE_PTR);
     ty->base = base;
     return ty;
 }
 
 int size_of(Type *ty) {
-    if (ty->kind == TYPE_INT || ty->kind == TYPE_PTR) {
-        return 8;
+    switch(ty->kind) {
+        case TYPE_CHAR:
+            return 1;
+        case TYPE_INT:
+        case TYPE_PTR: {
+            return 8;
+        }
+        default: {
+            return size_of(ty->base) * ty->array_size;
+        }
     }
-    return size_of(ty->base) * ty->array_size;
 }
 
 // Array
 Type *array_of(Type *base, int array_size) {
-    Type *ty = calloc(1, sizeof(Type));
-    ty->kind = TYPE_ARRAY;
+    Type *ty = new_type(TYPE_ARRAY);;
     ty->base = base;
     ty->array_size = array_size;
     return ty;

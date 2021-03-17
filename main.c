@@ -3,6 +3,12 @@
 char *user_input; // コンパイルエラーを表示するための変数
 Token *token;
 
+// この関数はよくわからん
+// n + align - 1　を計算しているだけのような気がする
+int align_to(int n, int align) {
+  return (n + align - 1) & ~(align - 1);
+}
+
 int main(int argc, char *argv[]) {
     if (argc != 2) {
         fprintf(stderr, "引数の個数が正しくありません。\n");
@@ -20,7 +26,7 @@ int main(int argc, char *argv[]) {
             offset += size_of(v->var->ty);
             v->var->offset = offset;
         }
-        f->stack_size = offset;
+        f->stack_size = align_to(offset, 8); // この処理はよくわからん
     }
 
     codegen(prog);

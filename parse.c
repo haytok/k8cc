@@ -103,11 +103,22 @@ void global_var() {
     expect(";");
 }
 
+bool is_type_name() {
+    return peek("int") || peek("char");
+}
+
 // Type に関する処理
+// basetype = ("int" | "char") "*"*
 Type *basetype() {
-    // 現時点では int 型のみを実装する
-    expect("int");
-    Type *ty = int_type();
+    Type *ty;
+    if (consume("char")) {
+        ty = char_type();
+    } else if (consume("int")) {
+        ty = int_type();
+    } else {
+        error_token(token, "Invalid token.");
+    }
+
     while(consume("*")) {
         ty = pointer_to(ty);
     }
@@ -335,7 +346,7 @@ Node *stmt() {
         }
     }
 
-    if (tkn = peek("int")) {
+    if (is_type_name()) {
         return declaration();
     }
 

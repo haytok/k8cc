@@ -3,7 +3,8 @@
 void gen(Node *node);
 
 int label_seq = 0;
-char *arg_register[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+char *arg_register1[] = {"dil", "sil", "dl", "cl", "r8b", "r9b"};
+char *arg_register8[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 char *function_name;
 
 void gen_addr(Node *node) {
@@ -37,16 +38,28 @@ void gen_lval(Node *node) {
     gen_addr(node);
 }
 
-void load() {
+void load(Type *ty) {
     printf("  pop rax\n");
-    printf("  mov rax, [rax]\n");
+
+    if (size_of(ty) == 1) {
+        printf("  movsx eax, byte ptr [rax]\n");
+    } else if (size_of(ty) == 8) {
+        printf("  mov rax, [rax]\n");
+    }
+
     printf("  push rax\n");
 }
 
-void store() {
+void store(Type *ty) {
     printf("  pop rdi\n");
     printf("  pop rax\n");
-    printf("  mov [rax], rdi\n");
+
+    if (size_of(ty) == 1) {
+        printf("  mov [rax], dil\n");
+    } else if (size_of(ty) == 8) {
+        printf("  mov [rax], rdi\n");
+    }
+
     printf("  push rdi\n");
 }
 
@@ -68,14 +81,14 @@ void gen(Node *node) {
             gen_lval(node->lhs);
             gen(node->rhs);
 
-            store();
+            store(node->type);
             return;
         // a + z の処理の時に呼ばれる。
         case NODE_VAR:
             gen_addr(node);
             // 現時点では Array に代入は実装しない。
             if (node->type->kind != TYPE_ARRAY) {
-                load();
+                load(node->type);
             }
             return;
         case NODE_IF: {
@@ -150,7 +163,7 @@ void gen(Node *node) {
                 arg_n++;
             }
             for (int i = arg_n - 1; i >= 0; i--) {
-                printf("  pop %s\n", arg_register[i]);
+                printf("  pop %s\n", arg_register8[i]);
             }
             int seq = label_seq++;
             printf("  mov rax, rsp\n");
@@ -179,7 +192,7 @@ void gen(Node *node) {
             gen(node->lhs);
             // 現時点では Array に代入は実装しない。
             if (node->type->kind != TYPE_ARRAY) {
-                load();
+                load(node->type);
             }
             return;
         }
@@ -259,6 +272,15 @@ void emit_data(Program *prog) {
     }
 }
 
+void load_arg(Var *var, int i) {
+    int sz = size_of(var->ty);
+    if (sz == 1) {
+        printf("  mov [rbp-%d], %s\n", var->offset, arg_register1[i]);
+    } else if (sz == 8) {
+        printf("  mov [rbp-%d], %s\n", var->offset, arg_register8[i]);
+    }
+}
+
 // 関数のアセンブリを吐き出す関数
 void emit_text(Program *prog) {
     printf(".text\n");
@@ -278,7 +300,7 @@ void emit_text(Program *prog) {
         for (VarList *p = f->params; p; p = p->next) {
             Var *v = p->var;
             // v->name には x, y などの定義された関数の引数名が入っている。
-            printf("  mov [rbp-%d], %s\n", v->offset, arg_register[i++]);
+            load_arg(v, i++);
         }
 
         for (Node *n = f->node; n; n = n->next) {

@@ -100,6 +100,7 @@ struct Function {
 
 typedef enum {
     TYPE_INT,
+    TYPE_CHAR,
     TYPE_PTR,
     TYPE_ARRAY,
 } TypeKind;
@@ -140,6 +141,7 @@ extern Token *token;
 
 // type を追加
 Type *int_type();
+Type *char_type();
 Type *pointer_to(Type *base);
 Type *array_of(Type *base, int array_size);
 int size_of(Type *ty);
