@@ -16,7 +16,7 @@ assert() {
     input="$2"
 
     ./k8cc "$input" > tmp.s
-    gcc -o tmp tmp.s tmp2.o
+    gcc -static -o tmp tmp.s tmp2.o
     ./tmp
     actual="$?"
 
