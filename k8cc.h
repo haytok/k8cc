@@ -18,6 +18,7 @@ typedef struct Program Program;
 typedef enum {
   TK_RESERVED,
   TK_NUM,
+  TK_STR,
   TK_EOF,
   TK_IDENT, // 変数
 } TokenKind;
@@ -28,6 +29,9 @@ struct Token {
     int value;
     Token *next;
     int len;
+    // char で使用する変数
+    char *contents;
+    int cont_len;
 };
 
 typedef enum {
@@ -82,6 +86,9 @@ struct Var {
     Type *ty;
     bool is_local;
     int offset;
+    // char で使用する変数
+    char *contents;
+    int cont_len;
 };
 
 struct VarList {

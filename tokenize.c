@@ -185,6 +185,20 @@ Token *tokenize() {
             current_token->len = string - tmp;
             continue;
         }
+        if (*string == '"') {
+            char *start = string++;
+            while (*string && *string != '"') {
+                string++;
+            }
+            if (!*string) {
+                error_at(string, "unclosed string literal");
+            }
+            string++;
+            current_token = new_token(TK_STR, start, current_token, string - start);
+            current_token->contents = strndup(start + 1, string - start - 2);
+            current_token->cont_len = string - start - 1; // -1 にしているのはおそらく後で for 文で回す時の評価式で < を使用したいからと思われる。
+            continue;
+        }
         error_at(string, "トークナイズできません。");
     }
     current_token = new_token(TK_EOF, string, current_token, 0);

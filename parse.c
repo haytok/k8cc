@@ -103,6 +103,13 @@ void global_var() {
     expect(";");
 }
 
+char *new_label() {
+    static int count = 0;
+    char buf[20];
+    sprintf(buf, ".LC%d", count++);
+    return strndup(buf, 20);
+}
+
 bool is_type_name() {
     return peek("int") || peek("char");
 }
@@ -474,6 +481,7 @@ Node *postfix() {
 // | ident function_args?
 // | "(" expr ")"
 // | "sizeof" unary
+// | str
 Node *primary() {
     Token *tkn;
     if (consume("(")) {
@@ -506,6 +514,15 @@ Node *primary() {
     }
 
     tkn = token;
+    // 文字列リテラルの処理
+    if (tkn->kind == TK_STR) {
+        token = token->next;
+        Type *ty = array_of(char_type(), tkn->cont_len);
+        Var *var = push_var(new_label(), ty, false);
+        var->contents = tkn->contents;
+        var->cont_len = tkn->cont_len;
+        return new_var(var, tkn);
+    }
     if (tkn->kind != TK_NUM) {
         error_token(tkn, "Invalid token.");
     }
