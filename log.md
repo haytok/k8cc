@@ -511,3 +511,8 @@ int x; int main() { return x; } => 0, but got 127
 Makefile:11: recipe for target 'test' failed
 make: *** [test] Error 1
 ```
+
+- [sprintf 書式指定変換した出力を文字列に格納します](http://www9.plala.or.jp/sgwr-t/lib/sprintf.html)
+- strndup 関数
+
+- 文字列リテラルのアセンブラの出力形式は資料のデータセグメントの節に記載されている。
