@@ -57,6 +57,7 @@ typedef enum {
     NODE_ADDRESS, // &
     NODE_NULL, // 変数宣言で使用
     NODE_SIZEOF,
+    NODE_STMT_EXPR,
 } NodeKind;
 
 struct Node {
@@ -73,7 +74,7 @@ struct Node {
     Node *els;
     Node *init;
     Node *inc;
-    Node *body; // block
+    Node *body; // block or statement expression
     char *function_name;
     Node *args; // args of function
     Token *token;

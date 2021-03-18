@@ -143,6 +143,14 @@ void visit(Node *node) {
             node->lhs = NULL;
             return;
         }
+        case NODE_STMT_EXPR: {
+            Node *last = node->body;
+            while (last->next) {
+                last = last->next;
+            }
+            node->type = last->type;
+            return;
+        }
     }
 }
 

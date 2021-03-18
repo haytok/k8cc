@@ -149,12 +149,12 @@ void gen(Node *node) {
             printf("  .Lend%d:\n", seq); // アセンブラ内の : は必須
             return;
         }
-        case NODE_BLOCK: {
+        case NODE_BLOCK:
+        case NODE_STMT_EXPR:
             for (Node *n = node->body; n; n=n->next) {
                 gen(n);
             }
             return;
-        }
         case NODE_FUNCALL: {
             int arg_n = 0;
             for (Node *arg = node->args; arg; arg = arg->next) {
