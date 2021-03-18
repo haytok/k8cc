@@ -144,6 +144,61 @@ char *starts_with_reserved(char *string) {
     return NULL;
 }
 
+char get_escape_char(char c) {
+    switch (c) {
+        case 'a':
+            return '\a';
+        case 'b':
+            return '\b';
+        case 't':
+            return '\t';
+        case 'n':
+            return '\n';
+        case 'v':
+            return '\v';
+        case 'f':
+            return '\f';
+        case 'r':
+            return '\r';
+        case 'e':
+            return 27;
+        case '0':
+            return 0;
+        default:
+            return c;
+    }
+}
+
+Token *read_string_literal(Token *current_token, char *string) {
+    char *start = string + 1;
+    int len = 0;
+    char buf[1024];
+
+    for (;;) {
+        if (len == sizeof(buf)) {
+            error_at(string, "string literal too large");
+        }
+        if (*start == '\0') {
+            error_at(string, "unclosed string literal");
+        }
+        if (*start == '"') {
+            break;
+        }
+        if (*start == '\\') {
+            start++;
+            buf[len++] = get_escape_char(*start++);
+        } else {
+            buf[len++] = *start++; // buf に一文字ずつ書き込んでいくのでこの実装が可能になる
+        }
+    }
+    Token *tkn = new_token(TK_STR, string, current_token, start - string + 1);
+    tkn->contents = malloc(len + 1); // char *constents に空の領域を確保するために malloc を使用している。また、null 文字分の領域を確保している。
+    memcpy(tkn->contents, buf, len);
+    tkn->contents[len] = '\0';
+    tkn->cont_len = len + 1;
+    return tkn;
+}
+
 Token *tokenize() {
     char *string = user_input;
     // 連結リストで作成していく Token の初期化
@@ -186,17 +241,9 @@ Token *tokenize() {
             continue;
         }
         if (*string == '"') {
-            char *start = string++;
-            while (*string && *string != '"') {
-                string++;
-            }
-            if (!*string) {
-                error_at(string, "unclosed string literal");
-            }
-            string++;
-            current_token = new_token(TK_STR, start, current_token, string - start);
-            current_token->contents = strndup(start + 1, string - start - 2);
-            current_token->cont_len = string - start - 1; // -1 にしているのはおそらく後で for 文で回す時の評価式で < を使用したいからと思われる。
+            // 処理を関数に切り出す
+            current_token = read_string_literal(current_token, string);
+            string += current_token->len; // 入力文字列を進める処理は read_string_literal 関数では行わず、この tokenize 関数で行うような設計にする。また、token->len には入力文字列の進めるべき長さが格納されている。
             continue;
         }
         error_at(string, "トークナイズできません。");
