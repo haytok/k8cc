@@ -15,7 +15,7 @@ assert() {
     expected="$1"
     input="$2"
 
-    ./k8cc "$input" > tmp.s
+    ./k8cc <(echo "$input") > tmp.s
     gcc -static -o tmp tmp.s tmp2.o
     ./tmp
     actual="$?"
