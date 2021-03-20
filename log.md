@@ -543,3 +543,95 @@ make: *** [test] Error 1
 >>> ord("a")
 97
 ```
+
+- feof (man 3 feof)
+- ファイルの末尾まで進んでいたら、not 0 の値が返る。
+
+```bash
+SYNOPSIS
+       #include <stdio.h>
+
+       int feof(FILE *stream);
+
+SCRIPTION
+       The  function  feof()  tests  the  end-of-file  indicator  for the stream pointed to by stream, returning nonzero if it is set.  The end-of-file indicator can be
+       cleared only by the function clearerr().
+```
+
+- fopen (man 3 fopen)
+
+```bash
+SYNOPSIS
+       #include <stdio.h>
+
+       FILE *fopen(const char *pathname, const char *mode);
+
+RETURN VALUE
+       Upon successful completion fopen(), fdopen() and freopen() return a FILE pointer.  Otherwise, NULL is returned and errno is set to indicate the error.
+```
+
+- fopen を fread にタイポして思ったけど、fread って何やろ。
+
+- errno はふつうの Linux プログラミングの p.94 に書かれている。
+
+- strerror
+
+```bash
+SYNOPSIS
+       #include <string.h>
+
+       char *strerror(int errnum);
+
+DESCRIPTION
+       The  strerror()  function  returns  a pointer to a string that describes the error code passed in the argument errnum, possibly using the LC_MESSAGES part of the
+       current locale to select the appropriate language.
+
+RETURN VALUE
+       The  strerror(),  strerror_l(), and the GNU-specific strerror_r() functions return the appropriate error description string, or an "Unknown error nnn" message if
+       the error number is unknown.
+```
+
+- error
+
+```bash
+SYNOPSIS
+       #include <error.h>
+
+       void error(int status, int errnum, const char *format, ...);
+
+DESCRIPTION
+       error() is a general error-reporting function.  It flushes stdout, and then outputs to stderr the program name, a colon and a space, the message specified by the
+       printf(3)-style format string format, and, if errnum is nonzero, a second colon and a space followed by the string  given  by  strerror(errnum).   Any  arguments
+       required for format should follow format in the argument list.  The output is terminated by a newline character.
+```
+
+- open -> read -> write -> close
+
+- fread
+
+```bash
+SYNOPSIS
+       #include <stdio.h>
+
+       size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream);
+
+RETURN VALUE
+       On  success,  fread()  and  fwrite()  return the number of items read or written.  This number equals the number of bytes transferred only when size is 1.  If an
+       error occurs, or the end of the file is reached, the return value is a short item count (or zero).
+
+       fread() does not distinguish between end-of-file and error, and callers must use feof(3) and ferror(3) to determine which occurred.
+```
+
+- [printfの書式の * ってなんだ？](https://qiita.com/bamchoh/items/5e6d5435e0f9ed1fe463)
+
+```c
+#include <stdio.h>
+
+int main()
+{
+  printf("%*s\n",  5, "aa"); // '   aa' が出力される(左3文字空白)
+  printf("%*s\n",  5, "aaaabbbb"); // 'aaaabbbb' が出力される
+  printf("%.*s\n", 5, "aaaabbbb"); // 'aaaab' が出力される
+  return 0;
+}
+```
