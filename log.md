@@ -656,3 +656,53 @@ fopenはメモリ上に入出力のためのバッファ領域を設け、そこ
 
 しかし（fopenを使い）バッファにデータを貯めこんで、１回でＨＤＤに書き込むことができるならば、書き込む場所を特定するのは１度で済みます。書きこみが高速化できます。
 ```
+
+### コメントアウトを飛ばす処理の実装
+
+- strstr (man 3 strstr)
+
+```bash
+SYNOPSIS
+       #include <string.h>
+
+       char *strstr(const char *haystack, const char *needle);
+
+DESCRIPTION
+       The strstr() function finds the first occurrence of the substring needle in the string haystack.  The terminating null bytes ('\0') are not compared.
+
+       The strcasestr() function is like strstr(), but ignores the case of both arguments.
+
+RETURN VALUE
+       These functions return a pointer to the beginning of the located substring, or NULL if the substring is not found.
+```
+
+- 以下の自分で実装した処理は `strstr` を使用するとリファクタできる。
+
+```c
+if (startswith(string, "/*")) {
+    string += 2;
+    while (!startswith(string, "*/")) {
+        string++;
+    }
+    string += 2;
+    continue;
+}
+```
+
+```c
+// コメントアウトを飛ばす処理の実装
+if (startswith(string, "/*")) {
+    char *q = strstr(string + 2, "*/");
+    if (!q) {
+        error_at(string, "unclosed block comment");
+    }
+    string = q + 2;
+    continue;
+}
+```
+
+- 文字列リテラルの先頭の文字と比較する時の処理の書き方
+
+```c
+*string != '\n'
+```
