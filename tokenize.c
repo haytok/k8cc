@@ -235,6 +235,24 @@ Token *tokenize() {
             *string++;
             continue;
         }
+        // コメントアウトを飛ばす処理の実装
+        if (startswith(string, "/*")) {
+            char *q = strstr(string + 2, "*/");
+            if (!q) {
+                error_at(string, "unclosed block comment");
+            }
+            string = q + 2;
+            continue;
+        }
+        if (startswith(string, "//")) {
+            string += 2;
+            while (*string != '\n') {
+                string++;
+            }
+            // あってもなくても後段でエスケープされる。
+            // string++;
+            continue;
+        }
         // 予約語に対するトークナイズ
         char *reserved_keyword = starts_with_reserved(string);
         if (reserved_keyword) {
