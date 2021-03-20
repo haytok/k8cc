@@ -2,6 +2,7 @@
 
 VarList *locals;
 VarList *globals;
+VarList *scope;
 
 // 関数の循環参照のためのプロトタイプ宣言
 Type *basetype();
@@ -53,18 +54,8 @@ Node *new_var(Var *var, Token *tkn) {
 }
 
 Var *find_var(Token *tkn) {
-    for (VarList *l = locals; l; l=l->next) {
-        Var *var = l->var;
-        if (
-            strlen(var->name) == tkn->len &&
-            !memcmp(tkn->string, var->name, tkn->len)
-        ) {
-            return var;
-        }
-    }
-    // local 変数を見に行っていから global 変数を読み行くのでこの順番になる
-    for (VarList *g = globals; g; g=g->next) {
-        Var *var = g->var;
+    for (VarList *vl = scope; vl; vl = vl->next) {
+        Var *var = vl->var;
         if (
             strlen(var->name) == tkn->len &&
             !memcmp(tkn->string, var->name, tkn->len)
@@ -91,6 +82,13 @@ Var *push_var(char *name, Type *ty, bool is_local) {
         vl->next = globals;
         globals = vl;
     }
+
+
+    VarList *sc = calloc(1, sizeof(VarList));
+    sc->var = var;
+    sc->next = scope;
+    scope = sc;
+
     return var;
 }
 
@@ -300,10 +298,12 @@ Node *stmt() {
         head.next = NULL;
         Node *current_node = &head;
 
+        VarList *sc = scope;
         while (!consume("}")) {
             current_node->next = stmt();
             current_node = current_node->next;
         }
+        scope = sc;
 
         Node *node = new_node(NODE_BLOCK, tkn);
         node->body = head.next;
@@ -480,6 +480,8 @@ Node *postfix() {
 //
 // Statement expression is a GNU C extension.
 Node *stmt_expr(Token *tkn) {
+    VarList *sc = scope;
+
     Node *node = new_node(NODE_STMT_EXPR, tkn);
     node->body = stmt();
     Node *current_node = node->body;
@@ -489,6 +491,8 @@ Node *stmt_expr(Token *tkn) {
         current_node = current_node->next;
     }
     expect(")");
+
+    scope = sc;
 
     if (current_node->kind != NODE_EXPR_STMT)
         error_token(current_node->token, "stmt expr returning void is not supported");
