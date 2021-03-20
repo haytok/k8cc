@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "k8cc.h": "c"
-    }
+        "k8cc.h": "c",
+        "cstdlib": "c"
+    },
+    "C_Cpp.errorSquiggles": "Disabled"
 }
