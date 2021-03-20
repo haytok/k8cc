@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <assert.h>
+#include <errno.h> // グローバル変数 errno 変数用
 
 typedef struct Token Token;
 typedef struct Node Node;
@@ -146,6 +147,7 @@ void codegen(Program *prog);
 // global 変数
 extern char *user_input;
 extern Token *token;
+extern char *filename;
 
 // type を追加
 Type *int_type();

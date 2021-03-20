@@ -2,9 +2,33 @@
 
 char *user_input; // コンパイルエラーを表示するための変数
 Token *token;
+char *filename;
 
 void verror_at(char *string, char *fmt, va_list ap) {
-    int counts = string - user_input;
+    // その行の先頭を文字列ポインタ line が指すように処理を行う。
+    // user_input は入力文字列の先頭のポインタである。
+    char *line = string;
+    while (user_input < line && line[-1] != '\n') {
+        line--;
+    }
+
+    // 行の末尾を文字列ポインタ end が指すように処理を行う。
+    char *end = string;
+    while (*end != '\n') {
+        end++;
+    }
+
+    int line_num = 1;
+    for (char *s = user_input; s < line; s++) {
+        if (*s == '\n') {
+            line_num++;
+        }
+    }
+
+    int indent = fprintf(stderr, "%s:%d\n", filename, line_num);
+    fprintf(stderr, "%.*s\n", (int)(end - line), line);
+
+    int counts = string - user_input + indent;
     fprintf(stderr, "%s\n", user_input);
     fprintf(stderr, "%*s", counts, " ");
     fprintf(stderr, "^ ");
