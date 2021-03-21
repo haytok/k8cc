@@ -15,6 +15,7 @@ typedef struct VarList VarList;
 typedef struct Function Function;
 typedef struct Type Type;
 typedef struct Program Program;
+typedef struct Member Member;
 
 typedef enum {
   TK_RESERVED,
@@ -59,6 +60,7 @@ typedef enum {
     NODE_NULL, // 変数宣言で使用
     NODE_SIZEOF,
     NODE_STMT_EXPR,
+    NODE_MEMBER,
 } NodeKind;
 
 struct Node {
@@ -80,6 +82,9 @@ struct Node {
     Node *args; // args of function
     Token *token;
     Type *type;
+    // struct member access
+    char *member_name;
+    Member *member;
 };
 
 struct Var {
@@ -112,17 +117,26 @@ typedef enum {
     TYPE_CHAR,
     TYPE_PTR,
     TYPE_ARRAY,
+    TYPE_STRUCT,
 } TypeKind;
 
 struct Type {
     TypeKind kind;
     Type *base;
     size_t array_size;
+    Member *members;
 };
 
 struct Program {
     Function *functions;
     VarList *globals;
+};
+
+struct Member {
+    Member *next;
+    char *name;
+    Type *ty;
+    int offset;
 };
 
 // 文法に関する宣言
@@ -152,6 +166,7 @@ extern char *filename;
 // type を追加
 Type *int_type();
 Type *char_type();
+Type *struct_type();
 Type *pointer_to(Type *base);
 Type *array_of(Type *base, int array_size);
 int size_of(Type *ty);

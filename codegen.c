@@ -27,6 +27,13 @@ void gen_addr(Node *node) {
             gen(node->lhs);
             return;
         }
+        case NODE_MEMBER: {
+            gen_addr(node->lhs);
+            printf("  pop rax\n");
+            printf("  add rax, %d\n", node->member->offset);
+            printf("  push rax\n");
+            return;
+        }
     }
 }
 
@@ -84,6 +91,7 @@ void gen(Node *node) {
             store(node->type);
             return;
         // a + z の処理の時に呼ばれる。
+        case NODE_MEMBER:
         case NODE_VAR:
             gen_addr(node);
             // 現時点では Array に代入は実装しない。

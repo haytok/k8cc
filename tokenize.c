@@ -69,7 +69,7 @@ bool is_alnum(char c) {
 // stdbool.h が必要
 bool at_eof() { return token->kind == TK_EOF; }
 
-// 演算子に関する処理を実装
+// 演算子に関する処理を実装 (token は進めない)
 Token *peek(char *op) {
     if (
         token->kind != TK_RESERVED ||
@@ -149,7 +149,8 @@ char *starts_with_reserved(char *string) {
         "for",
         "int",
         "char",
-        "sizeof"
+        "sizeof",
+        "struct"
     };
     int keyword_size = sizeof(keyword) / sizeof(*keyword);
     for (int i = 0; i < keyword_size; i++) {
@@ -261,7 +262,7 @@ Token *tokenize() {
             string += len;
             continue;
         }
-        if (strchr("+-*/()<>;={},&[]", *string)) {
+        if (strchr("+-*/()<>;={},&[].", *string)) {
             current_token = new_token(TK_RESERVED, string++, current_token, 1);
             continue;
         }

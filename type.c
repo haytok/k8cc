@@ -14,6 +14,10 @@ Type *char_type() {
     return new_type(TYPE_CHAR);
 }
 
+Type *struct_type() {
+    return new_type(TYPE_STRUCT);
+}
+
 // 新しい Type オブジェクトに次のノードの Type オブジェクトを
 //追加したオブジェクトを返す関数
 Type *pointer_to(Type *base) {
@@ -30,15 +34,31 @@ int size_of(Type *ty) {
         case TYPE_PTR: {
             return 8;
         }
-        default: {
+        case TYPE_ARRAY: {
             return size_of(ty->base) * ty->array_size;
+        }
+        default: {
+            Member *m = ty->members;
+            while (m->next) {
+                m = m->next;
+            }
+            return m->offset + size_of(m->ty);
         }
     }
 }
 
+Member *find_member(Type *ty, char *name) {
+    for (Member *m = ty->members; m; m = m->next) {
+        if (!strcmp(m->name, name)) {
+            return m;
+        }
+    }
+    return NULL;
+}
+
 // Array
 Type *array_of(Type *base, int array_size) {
-    Type *ty = new_type(TYPE_ARRAY);;
+    Type *ty = new_type(TYPE_ARRAY);
     ty->base = base;
     ty->array_size = array_size;
     return ty;
@@ -116,6 +136,15 @@ void visit(Node *node) {
         }
         case NODE_ASSIGN: {
             node->type = node->lhs->type;
+            return;
+        }
+        case NODE_MEMBER: {
+            if (node->lhs->type->kind != TYPE_STRUCT)
+                error_token(node->token, "not a struct");
+            node->member = find_member(node->lhs->type, node->member_name);
+            if (!node->member)
+                error_token(node->token, "specified member does not exist");
+            node->type = node->member->ty;
             return;
         }
         // *

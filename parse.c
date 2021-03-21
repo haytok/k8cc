@@ -19,6 +19,9 @@ Node *mul();
 Node *unary();
 Node *postfix();
 Node *primary();
+// struct member に関する処理
+Member *struct_member();
+Type *struct_decl();
 
 // 構文解析
 Node *new_node(NodeKind kind, Token *tkn) {
@@ -83,7 +86,6 @@ Var *push_var(char *name, Type *ty, bool is_local) {
         globals = vl;
     }
 
-
     VarList *sc = calloc(1, sizeof(VarList));
     sc->var = var;
     sc->next = scope;
@@ -109,19 +111,59 @@ char *new_label() {
 }
 
 bool is_type_name() {
-    return peek("int") || peek("char");
+    return peek("int") || peek("char") || peek("struct");
+}
+
+// struct に関する処理 ex) struct {int a; int b;} x;
+// struct-decl = "struct" "{" struct-member "}"
+Type *struct_decl() {
+    if (consume("struct")) {
+        if (consume("{")) {
+            Member head;
+            head.next = NULL;
+            Member *current_member = &head;
+            while (!consume("}")) {
+                current_member->next = struct_member();
+                current_member = current_member->next;
+            }
+            Type *ty = struct_type();
+            ty->members = head.next;
+            int offset = 0;
+            for (Member *m = ty->members; m; m = m->next) {
+                m->offset = offset;
+                offset += size_of(m->ty);
+            }
+            return ty;
+        }
+    }
+}
+
+// struct member に関する処理 ex) struct {int a; int b;} x;
+// struct-member = (basetype ident "[" num "]" ";")*
+Member *struct_member() {
+    // 構造体の member を追加する処理
+    Member *m = calloc(1, sizeof(Member));
+    Type *base = basetype();
+    m->name = expect_ident();
+    m->ty = read_type_suffix(base);
+    expect(";");
+    return m;
 }
 
 // Type に関する処理
-// basetype = ("int" | "char") "*"*
+// basetype = ("int" | "char" | struct-decl) "*"*
 Type *basetype() {
+    if (!is_type_name()) {
+        error_token(token, "Invalid token.");
+    }
+
     Type *ty;
     if (consume("char")) {
         ty = char_type();
     } else if (consume("int")) {
         ty = int_type();
-    } else {
-        error_token(token, "Invalid token.");
+    } else if (peek("struct")) {
+        ty = struct_decl();
     }
 
     while(consume("*")) {
@@ -468,17 +510,28 @@ Node *unary() {
     return postfix();
 }
 
-// postfix = primary ( "[" expr "]" )*
+// struct に関する処理も考慮する必要がある。 ex) x.a=1; x.b=2; x.a;
+// postfix = primary ( "[" expr "]" | "." ident)*
 Node *postfix() {
     Node *node = primary();
     Token *tkn;
-    while(tkn = consume("[")) {
-        // x[y] is short for *(x+y).
-        Node *exp = new_node_binary(NODE_ADD, node, expr(), tkn);
-        expect("]");
-        node = new_unary(NODE_DEREF, exp, tkn);
+
+    for (;;) {
+        if (tkn = consume("[")) {
+            // x[y] is short for *(x+y).
+            Node *exp = new_node_binary(NODE_ADD, node, expr(), tkn);
+            expect("]");
+            node = new_unary(NODE_DEREF, exp, tkn);
+            continue;
+        }
+        if (tkn = consume(".")) {
+            node = new_unary(NODE_MEMBER, node, tkn);
+            node->member_name = expect_ident();
+            continue;
+        }
+
+        return node;
     }
-    return node;
 }
 
 // stmt-expr = "(" "{" stmt stmt* "}" ")"
