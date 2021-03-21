@@ -706,3 +706,23 @@ if (startswith(string, "/*")) {
 ```c
 *string != '\n'
 ```
+
+## struct を parse できるように
+- この実装は `struct_member` 関数の責務の範囲を超えた実装になってしまっている。単一の struct_member を返すだけの実装にするべきで、関数内で while 文を回す必要はない。
+
+```c
+// struct-member = (basetype ident "[" num "]" ";")*
+// ex) struct {int a; int b;} x;
+Type *struct_member() {
+    Type *ty = struct_type();
+    // 構造体の member を追加する処理
+    while (!consume("}")) {
+        Type *base = basetype();
+        char *ident = expect_ident();
+        Type *ty = read_type_suffix(base);
+        Var *var = push_var(ident, ty, true);
+        expect(";");
+    }
+    return ty;
+}
+```
