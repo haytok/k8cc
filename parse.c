@@ -278,6 +278,11 @@ Node *declaration() {
     return new_unary(NODE_EXPR_STMT, node, tkn); // stmt 関数内で呼び出される
 }
 
+Node *read_expr_stmt() {
+  Token *tkn = token;
+  return new_unary(NODE_EXPR_STMT, expr(), tkn);
+}
+
 // stmt = expr ";"
 // | "{" stmt* "}"
 // | "if" "(" expr ")" stmt ("else" stmt)?
@@ -337,7 +342,7 @@ Node *stmt() {
         if (consume("(")) {
             Node *node = new_node(NODE_FOR, tkn);
             if (!consume(";")) {
-                node->init = expr();
+                node->init = read_expr_stmt();
                 expect(";");
             }
             if (!consume(";")) {
@@ -345,7 +350,7 @@ Node *stmt() {
                 expect(";");
             }
             if (!consume(")")) {
-                node->inc = expr();
+                node->inc = read_expr_stmt();
                 expect(")");
             }
             node->then = stmt();
