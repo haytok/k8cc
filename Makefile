@@ -7,8 +7,13 @@ k8cc: $(OBJS)
 
 $(OBJS): k8cc.h
 
-test: k8cc
+old-test: k8cc
 		./test.sh
+
+test: k8cc
+		./k8cc tests > tmp.s
+		gcc -static -o tmp tmp.s
+		./tmp
 
 clean:
 		rm -f k8cc *.o *~ tmp*
@@ -16,4 +21,4 @@ clean:
 build:
 		gcc -o k8cc ./k8cc.c && ./k8cc "12 + 34 - 5"
 
-.PHONY: test clean
+.PHONY: old-test test clean
